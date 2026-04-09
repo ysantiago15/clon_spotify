@@ -131,8 +131,8 @@ export default function Biblioteca() {
                     </div>
                 </div>
 
-                {/* footer — oculto en móvil */}
-                <div className="hidden md:block px-6">
+                {/* footer */}
+                <div className="px-6">
                     <div className="my-8 flex flex-col gap-4">
                         <div className=" text-[11px] text-gray-400 flex gap-4 flex-wrap">
                             <span className="cursor-pointer">Legal</span>
@@ -156,3 +156,31 @@ export default function Biblioteca() {
         </div>
     )
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

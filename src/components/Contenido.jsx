@@ -202,7 +202,7 @@ export default function Contenido({
 
   return (
     <div
-      className="px-0 md:px-10 pt-2 md:pt-6 bg-[#121212] w-full h-full md:h-136 flex flex-col gap-8 pb-20 md:pb-12 overflow-y-auto overflow-x-hidden spotify-scroll md:rounded-lg"
+      className="px-0 md:px-10 pt-2 md:pt-6 bg-[#121212] w-full h-full md:h-136 flex flex-col gap-8 pb-24 md:pb-12 overflow-y-auto overflow-x-hidden spotify-scroll md:rounded-lg"
       onMouseEnter={(e) => e.currentTarget.classList.add("scrollbar-visible")}
       onMouseLeave={(e) => e.currentTarget.classList.remove("scrollbar-visible")}
     >
