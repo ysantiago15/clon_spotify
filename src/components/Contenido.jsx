@@ -202,7 +202,7 @@ export default function Contenido({
 
   return (
     <div
-      className="px-2 md:px-10 pt-2 md:pt-6 bg-[#121212] w-full h-full md:h-136 flex flex-col gap-8 pb-12 overflow-y-auto overflow-x-hidden spotify-scroll rounded-lg"
+      className="px-0 md:px-10 pt-2 md:pt-6 bg-[#121212] w-full h-full md:h-136 flex flex-col gap-8 pb-20 md:pb-12 overflow-y-auto overflow-x-hidden spotify-scroll md:rounded-lg"
       onMouseEnter={(e) => e.currentTarget.classList.add("scrollbar-visible")}
       onMouseLeave={(e) => e.currentTarget.classList.remove("scrollbar-visible")}
     >
@@ -401,38 +401,42 @@ export default function Contenido({
       )}
 
       {/* ── Footer ──────────────────────────────────────────────────────── */}
-      <hr className="text-[#808080] text-[0.8px]" />
-      <div className="pb-10 mt-8 flex justify-between">
-        <div className="flex gap-12">
-          <ul className="flex flex-col text-[#B3B3B3] text-base gap-1.5 font-normal mr-6">
+      <hr className="text-[#808080] text-[0.8px] mx-4 md:mx-0" />
+
+      {/* Móvil: columna apilada — Desktop: fila horizontal */}
+      <div className="pb-10 mt-8 px-4 md:px-0 flex flex-col md:flex-row md:justify-between gap-8 md:gap-0">
+        <div className="flex flex-col md:flex-row gap-8 md:gap-12">
+          <ul className="flex flex-col text-[#B3B3B3] text-base gap-2 font-normal">
             <span className="text-white font-semibold">Compañía</span>
             <a href="">Acerca de</a><a href="">Empleo</a><a href="">For the Record</a>
           </ul>
-          <ul className="flex flex-col text-[#B3B3B3] text-base gap-1.5 font-normal mr-6">
+          <ul className="flex flex-col text-[#B3B3B3] text-base gap-2 font-normal">
             <span className="text-white font-semibold">Comunidades</span>
             <a href="">Para artistas</a><a href="">Desarrolladores</a>
             <a href="">Publicidad</a><a href="">Inversionistas</a><a href="">Proveedores</a>
           </ul>
-          <ul className="flex flex-col text-[#B3B3B3] text-base gap-1.5 font-normal mr-6">
+          <ul className="flex flex-col text-[#B3B3B3] text-base gap-2 font-normal">
             <span className="text-white font-semibold">Enlaces útiles</span>
             <a href="">Ayuda</a><a href="">App móvil gratis</a>
             <a href="">Contenido popular por país</a><a href="">Importar tu música</a>
           </ul>
-          <ul className="flex flex-col text-[#B3B3B3] text-base gap-1.5 font-normal mr-6">
+          <ul className="flex flex-col text-[#B3B3B3] text-base gap-2 font-normal">
             <span className="text-white font-semibold">Planes de Spotify</span>
             <a href="">Premium Individual</a><a href="">Premium Duo</a>
             <a href="">Premium Familiar</a><a href="">Premium para Estudiantes</a>
             <a href="">Versión gratuita</a>
           </ul>
         </div>
+        {/* Redes sociales */}
         <div className="flex gap-4">
           <div className="w-10 h-10 rounded-full bg-[#292929] flex items-center justify-center text-white"><FaInstagram size={18} /></div>
           <div className="w-10 h-10 rounded-full bg-[#292929] flex items-center justify-center text-white"><FaTwitter size={18} /></div>
           <div className="w-10 h-10 rounded-full bg-[#292929] flex items-center justify-center text-white"><FaFacebook size={18} /></div>
         </div>
       </div>
-      <hr className="text-[#808080] text-[0.8px]" />
-      <div className="py-3">
+
+      <hr className="text-[#808080] text-[0.8px] mx-4 md:mx-0" />
+      <div className="py-3 px-4 md:px-0">
         <span className="text-[#7C7C7C] text-sm font-semibold">© 2026 Spotify AB</span>
       </div>
 

@@ -136,7 +136,7 @@ export default function MenuMovil({ drawerOpen, setDrawerOpen, onSearch }) {
             )}
 
             {/* ── Barra de navegación inferior — solo móvil ────────────────── */}
-            <nav className="fixed bottom-0 left-0 right-0 z-[100] md:hidden bg-[#0a0a0a] border-t border-white/10 pb-safe">
+            <nav className="fixed bottom-0 left-0 right-0 z-[100] md:hidden bg-black/60 backdrop-blur-md border-t border-white/10 pb-safe">
                 <div className="flex items-center justify-around py-3 px-4 min-h-[60px]">
 
                     {/* Inicio */}
