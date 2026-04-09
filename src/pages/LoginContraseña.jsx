@@ -66,8 +66,8 @@ export default function LoginContraseña() {
   };
 
   return (
-    <main className="pt-24 px-4 flex flex-col bg-[#121212] h-screen max-w-screen items-center justify-between">
-      <div className="w-81">
+    <main className="pt-8 md:pt-24 px-6 md:px-4 flex flex-col bg-[#121212] min-h-screen max-w-screen items-center justify-between">
+      <div className="w-full md:w-81">
         <div className="mb-3">
           <button onClick={() => navigate("/login")} className="text-[#B3B3B3] hover:text-white transition-colors duration-200">
             <FiChevronLeft size={28} className="-ml-2" />

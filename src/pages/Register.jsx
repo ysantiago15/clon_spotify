@@ -71,14 +71,14 @@ export default function Register() {
   };
 
   return (
-    <main className="pt-24 flex flex-col items-center justify-center bg-[#121212] min-h-screen max-w-screen">
-      <div className="px-8 min-h-screen flex flex-col items-center w-97">
+    <main className="pt-8 md:pt-24 flex flex-col items-center justify-center bg-[#121212] min-h-screen max-w-screen">
+      <div className="px-6 md:px-8 min-h-screen flex flex-col items-center w-full md:w-97">
 
         <div className="text-white pb-2">
           <FaSpotify size={32} />
         </div>
 
-        <h1 className="text-white text-[40px] font-semibold text-center mb-8">
+        <h1 className="text-white text-[40px] md:text-[40px] font-bold text-center mb-8">
           {step === 1
             ? "Regístrate para empezar a escuchar"
             : "Crea tu cuenta"}

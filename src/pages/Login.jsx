@@ -37,8 +37,8 @@ export default function Login() {
   };
 
   return (
-    <main className="pt-24 flex flex-col items-center justify-center bg-[#121212] min-h-screen max-w-screen">
-      <div className="px-8 min-h-screen flex flex-col items-center w-97">
+    <main className="pt-8 md:pt-24 flex flex-col items-center justify-center bg-[#121212] min-h-screen max-w-screen">
+      <div className="px-6 md:px-8 min-h-screen flex flex-col items-center w-full md:w-97">
 
         <div className="text-white pb-2">
           <FaSpotify size={32} />
