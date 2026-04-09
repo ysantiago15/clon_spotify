@@ -77,7 +77,7 @@ export default function Home() {
             </div>
 
             {/* BarraFooter solo cuando NO hay sesión */}
-            {!token && <BarraFooter />}
+            {!token && <div className="hidden md:block"><BarraFooter /></div>}
 
             {/* Player solo cuando HAY sesión */}
             {token && (
