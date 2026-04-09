@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>clon_spotify</title>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script>
+    window.spotifySDKReady = false;
+
+    window.onSpotifyWebPlaybackSDKReady = () => {
+      console.log("⚓ SDK de Spotify detectado por el index.html");
+      window.spotifySDKReady = true;
+      // Notificamos a React que el objeto 'window.Spotify' ya existe
+      window.dispatchEvent(new Event('spotify-sdk-ready'));
+    };
+  </script>
+
+  <script src="https://sdk.scdn.co/spotify-player.js"></script>
+  <script type="module" src="/src/main.jsx"></script>
+  <!-- <script src="https://sdk.scdn.co/spotify-player.js"></script> -->
+
+</body>
+
+</html>
