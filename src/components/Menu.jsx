@@ -2,14 +2,16 @@
 import { useState } from "react";
 import { AiFillHome } from "react-icons/ai";
 import { FaSpotify } from "react-icons/fa";
-import { FiInbox, FiSearch, FiX } from "react-icons/fi";
+import { FiInbox, FiMenu, FiSearch, FiX } from "react-icons/fi";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import MenuMovil from "./MenuMovil";
 
 export default function Menu({ onSearch }) {
-  const [inputBtnX, setInputBtnX]         = useState("");
+  const [inputBtnX, setInputBtnX]           = useState("");
   const [mostrarTooltip, setMostrarTooltip] = useState("");
-  const [menuUser, setMenuUser]           = useState(false);
+  const [menuUser, setMenuUser]             = useState(false);
+  const [drawerOpen, setDrawerOpen]         = useState(false);
 
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -24,6 +26,7 @@ export default function Menu({ onSearch }) {
     await logout();
     setMenuUser(false);
     navigate("/");
+    handleClear();
   };
 
   // Inicial o foto del usuario
@@ -31,11 +34,22 @@ export default function Menu({ onSearch }) {
   const userPhoto   = user?.photoURL;
 
   return (
-    <header className="bg-black w-screen top-0 z-10 pl-6 opacity-90 h-16 flex items-center">
+    <>
+      {/* MenuMovil: barra inferior + drawer — solo visible en móvil */}
+      <MenuMovil drawerOpen={drawerOpen} setDrawerOpen={setDrawerOpen} onSearch={onSearch} />
+
+    <header className="bg-black w-screen top-0 z-10 px-4 md:pl-6 md:pr-0 opacity-90 h-16 flex items-center">
       <nav className="flex w-full justify-between text-white">
 
         {/* ── Izquierda: logo + búsqueda ────────────────────────────────── */}
-        <div className="flex items-center gap-6">
+        {/* Móvil: solo logo + texto "Spotify" */}
+        <div className="flex md:hidden items-center gap-2">
+          <FaSpotify className="text-white text-3xl" />
+          <span className="text-white font-bold text-xl tracking-tight">Spotify</span>
+        </div>
+
+        {/* Desktop: logo + buscador completo */}
+        <div className="hidden md:flex items-center gap-6">
           <div className="relative">
             <FaSpotify
               className="text-white text-4xl"
@@ -121,9 +135,22 @@ export default function Menu({ onSearch }) {
 
         {/* ── Derecha: sesión iniciada vs no iniciada ───────────────────── */}
         <div className="flex items-center gap-4 pr-2">
+
+          {/* Móvil: botón "Abrir aplicación" + hamburguesa */}
+          <button className="md:hidden text-white font-bold text-sm border-2 border-white rounded-full px-5 py-2 hover:bg-white hover:text-black transition-colors duration-200">
+            Abrir aplicación
+          </button>
+          <button
+            className="md:hidden text-white p-1"
+            onClick={() => setDrawerOpen(v => !v)}
+          >
+            <FiMenu size={26} />
+          </button>
+
+          {/* Desktop: sesión iniciada vs no iniciada */}
           {user ? (
             /* ── CON SESIÓN: avatar + menú desplegable ── */
-            <div className="relative">
+            <div className="relative hidden md:block">
               <button
                 onClick={() => setMenuUser(!menuUser)}
                 className="w-10 h-10 rounded-full bg-[#535353] flex items-center justify-center overflow-hidden hover:scale-105 transition-transform duration-200 border-2 border-transparent hover:border-white"
@@ -153,8 +180,8 @@ export default function Menu({ onSearch }) {
               )}
             </div>
           ) : (
-            /* ── SIN SESIÓN: botones de registro/login ── */
-            <>
+            /* ── SIN SESIÓN: botones de registro/login — solo desktop ── */
+            <div className="hidden md:flex items-center gap-4">
               <div className="flex gap-2 text-gray-300 text-base font-bold">
                 <p className="hover:text-white transition-all duration-300 hover:scale-103 cursor-pointer">Premium</p>
                 <p className="hover:text-white transition-all duration-300 hover:scale-103 cursor-pointer">Asistencia</p>
@@ -172,10 +199,11 @@ export default function Menu({ onSearch }) {
                   Iniciar sesión
                 </button>
               </Link>
-            </>
+            </div>
           )}
         </div>
       </nav>
     </header>
+    </>
   );
 }
