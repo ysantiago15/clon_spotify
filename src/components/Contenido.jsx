@@ -313,7 +313,7 @@ export default function Contenido({
                       onMouseLeave={() => setBtnPlay(false)}
                     >
                       <div className="w-42.75 h-42.75 relative">
-                        <img src={artist.images?.[0]?.url} alt={artist.name} className="w-full rounded-full" />
+                        <img src={artist.images?.[0]?.url} alt={artist.name} className="w-full h-full rounded-full" />
                         {btnPlay && (
                           <div
                             className="w-12 h-12 bg-[#1ED760] rounded-full flex justify-center items-center shadow-xl/30 absolute bottom-2 right-2 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 ease-out hover:bg-[#1fdf64] hover:scale-105"

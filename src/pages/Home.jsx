@@ -8,9 +8,11 @@ import Menu from "../components/Menu";
 import Player from "../components/Player";
 import { loginWithSpotify } from "../config/spotify";
 import { useSpotifyPlayer } from "../hooks/useSpotifyPlayer";
+import { useAuth } from "../context/AuthContext";
 
 export default function Home() {
-    const token = localStorage.getItem("spotify_token");
+    const { user } = useAuth();
+    const token = user ? localStorage.getItem("spotify_token") : null;
 
     const [searchQuery,  setSearchQuery]  = useState("");
     const [activeView,   setActiveView]   = useState("home");

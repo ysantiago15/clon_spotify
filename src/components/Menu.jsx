@@ -23,7 +23,7 @@ export default function Menu({ onSearch }) {
   const handleLogout = async () => {
     await logout();
     setMenuUser(false);
-    navigate("/login");
+    navigate("/");
   };
 
   // Inicial o foto del usuario
@@ -142,6 +142,7 @@ export default function Menu({ onSearch }) {
                     </p>
                     <p className="text-[#B3B3B3] text-xs truncate">{user.email}</p>
                   </div>
+                  
                   <button
                     onClick={handleLogout}
                     className="w-full text-left px-4 py-3 text-white text-sm hover:bg-[#3d3d3d] transition-colors duration-200"
