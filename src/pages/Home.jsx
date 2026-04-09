@@ -59,7 +59,7 @@ export default function Home() {
                           onViewChange={handleViewChange}
                           activeView={activeView}
                       />
-                    : <Biblioteca />
+                    : <div className="hidden md:block"><Biblioteca /></div>
                 }
 
                 <Contenido

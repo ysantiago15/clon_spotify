@@ -182,7 +182,7 @@ export default function MenuMovil({ drawerOpen, setDrawerOpen, onSearch }) {
             </nav>
 
             {/* Espaciador para que el contenido no quede tapado por la barra inferior */}
-            <div className="h-16 md:hidden flex-shrink-0" />
+            <div className="h-0 md:hidden flex-shrink-0" />
         </>
     );
 }
