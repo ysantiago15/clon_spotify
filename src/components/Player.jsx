@@ -314,128 +314,190 @@ export default function Player({
         : track.album?.name || "";
 
     return (
-        <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#0a0a0a] border-t border-white/5 px-4 py-3 flex items-center justify-between gap-4 select-none">
+        <>
+            {/* ══════════════════════════════════════════════
+                MÓVIL: mini-player pegado encima del nav bar
+                z-[105] → encima del nav (z-[100]) pero debajo del drawer (z-[200])
+            ══════════════════════════════════════════════ */}
+            <div
+                className="md:hidden fixed left-2 right-2 z-[105] select-none"
+                style={{ bottom: "calc(60px + env(safe-area-inset-bottom, 0px) + 6px)" }}
+            >
+                {/* Card */}
+                <div className="bg-[#1a1a1a] rounded-xl px-3 py-2 flex items-center gap-3 shadow-2xl border border-white/10">
+                    {/* Imagen */}
+                    <img
+                        src={track.image || track.album?.images?.[0]?.url}
+                        alt={track.name}
+                        className="w-11 h-11 rounded-lg object-cover flex-shrink-0 shadow-md"
+                    />
 
-            {/* ── IZQUIERDA ── */}
-            <div className="flex items-center gap-3 w-72 min-w-0">
-                <img
-                    src={track.image || track.album?.images?.[0]?.url}
-                    alt={track.name}
-                    className="w-14 h-14 rounded-md object-cover flex-shrink-0 shadow-lg"
-                />
-                <div className="min-w-0 flex flex-col gap-0.5">
-                    <p className="text-white text-sm font-semibold truncate">{track.name}</p>
-                    <p className="text-[#B3B3B3] text-xs truncate">
-                        {track.subtitle || track.artists?.[0]?.name}
-                        {albumName && (
-                            <span> &bull; <span className="hover:text-white hover:underline cursor-pointer transition-colors">{albumName}</span></span>
-                        )}
-                    </p>
-                </div>
-                <button
-                    onClick={() => toggleLike(track)}
-                    className="ml-1 flex-shrink-0 transition-transform hover:scale-110"
-                    title={liked ? "Quitar de Me gusta" : "Agregar a Me gusta"}
-                >
-                    {liked
-                        ? <FaHeart className="text-[#1DB954]" size={16} />
-                        : <FaRegHeart className="text-[#B3B3B3] hover:text-white transition-colors" size={16} />
-                    }
-                </button>
-            </div>
+                    {/* Nombre + artista */}
+                    <div className="flex-1 min-w-0">
+                        <p className="text-white text-sm font-semibold truncate leading-tight">{track.name}</p>
+                        <p className="text-[#B3B3B3] text-xs truncate leading-tight mt-0.5">
+                            {track.subtitle || track.artists?.[0]?.name}
+                        </p>
+                    </div>
 
-            {/* ── CENTRO ── */}
-            <div className="flex flex-col items-center gap-2 flex-1 max-w-xl">
-                <div className="flex items-center gap-5">
-                    <button onClick={handleShuffle} title="Aleatorio"
-                        className={`transition-colors ${shuffle ? "text-[#1DB954]" : "text-[#B3B3B3] hover:text-white"}`}>
-                        <FaShuffle size={16} />
-                    </button>
-                    <button onClick={handlePrev} title="Anterior"
-                        className="text-[#B3B3B3] hover:text-white transition-colors">
-                        <FaBackwardStep size={20} />
-                    </button>
-                    <button onClick={togglePlay} title={isPlaying ? "Pausar" : "Reproducir"}
-                        className="w-10 h-10 rounded-full bg-white flex items-center justify-center hover:scale-105 transition-transform shadow-lg">
-                        {isPlaying
-                            ? <FaPause size={16} className="text-black" />
-                            : <FaPlay  size={16} className="text-black ml-0.5" />
+                    {/* Corazón */}
+                    <button
+                        onClick={() => toggleLike(track)}
+                        className="flex-shrink-0 p-1.5 active:scale-90 transition-transform"
+                        title={liked ? "Quitar de Me gusta" : "Agregar a Me gusta"}
+                    >
+                        {liked
+                            ? <FaHeart className="text-[#1DB954]" size={20} />
+                            : <FaRegHeart className="text-[#B3B3B3]" size={20} />
                         }
                     </button>
-                    <button onClick={handleNext} title="Siguiente"
-                        className="text-[#B3B3B3] hover:text-white transition-colors">
-                        <FaForwardStep size={20} />
-                    </button>
+
+                    {/* Play / Pause */}
                     <button
-                        onClick={handleRepeat}
-                        title={repeat === "off" ? "Activar repetición" : repeat === "context" ? "Repetir canción" : "Desactivar repetición"}
-                        className={`transition-colors relative ${repeat !== "off" ? "text-[#1DB954]" : "text-[#B3B3B3] hover:text-white"}`}
+                        onClick={togglePlay}
+                        className="flex-shrink-0 p-1.5 active:scale-90 transition-transform"
+                        title={isPlaying ? "Pausar" : "Reproducir"}
                     >
-                        <FaRepeat size={16} />
-                        {/* Punto indicador bajo el ícono cuando está activo */}
-                        {repeat !== "off" && (
-                            <span className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#1DB954]" />
-                        )}
-                        {/* "1" encima cuando es repeat track */}
-                        {repeat === "track" && (
-                            <span className="absolute -top-2 left-1/2 -translate-x-1/2 text-[9px] font-bold text-[#1DB954] leading-none">1</span>
-                        )}
+                        {isPlaying
+                            ? <FaPause className="text-white" size={22} />
+                            : <FaPlay  className="text-white ml-0.5" size={22} />
+                        }
                     </button>
                 </div>
 
-                {/* Barra de progreso */}
-                <div className="flex items-center gap-2 w-full">
-                    <span className="text-[#B3B3B3] text-xs w-8 text-right tabular-nums">{formatTime(livePos)}</span>
+                {/* Barra de progreso delgada debajo del card */}
+                <div className="h-0.5 bg-white/15 rounded-full mt-1 mx-1 overflow-hidden">
                     <div
-                        className="relative flex-1 h-1 bg-[#4D4D4D] rounded-full cursor-pointer group"
-                        onClick={handleSeekClick}
-                    >
-                        <div
-                            className="h-full bg-white group-hover:bg-[#1DB954] rounded-full transition-colors relative pointer-events-none"
-                            style={{ width: `${progress}%` }}
-                        >
-                            <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow" />
-                        </div>
-                    </div>
-                    <span className="text-[#B3B3B3] text-xs w-8 tabular-nums">{formatTime(duration)}</span>
+                        className="h-full bg-[#1DB954] rounded-full transition-all duration-500"
+                        style={{ width: `${progress}%` }}
+                    />
                 </div>
-
-                {!isReady && (
-                    <p className="text-yellow-400 text-xs">⚠️ Conectando... (requiere Spotify Premium)</p>
-                )}
             </div>
 
-            {/* ── DERECHA ── */}
-            <div className="flex items-center gap-3 w-72 justify-end">
-                <button className="text-[#B3B3B3] hover:text-white transition-colors" title="Cola">
-                    <BsMusicNoteList size={16} />
-                </button>
-                <button className="text-[#B3B3B3] hover:text-white transition-colors" title="Dispositivos">
-                    <MdOutlineDevices size={18} />
-                </button>
-                <div className="flex items-center gap-2">
-                    <button onClick={toggleMute} title={volume === 0 ? "Activar" : "Silenciar"}
-                        className="text-[#B3B3B3] hover:text-white transition-colors">
-                        <VolumeIcon size={16} />
+            {/* ══════════════════════════════════════════════
+                DESKTOP: player completo igual que antes
+            ══════════════════════════════════════════════ */}
+            <div className="hidden md:flex fixed bottom-0 left-0 right-0 z-50 bg-[#0a0a0a] border-t border-white/5 px-4 py-3 items-center justify-between gap-4 select-none">
+
+                {/* ── IZQUIERDA ── */}
+                <div className="flex items-center gap-3 w-72 min-w-0">
+                    <img
+                        src={track.image || track.album?.images?.[0]?.url}
+                        alt={track.name}
+                        className="w-14 h-14 rounded-md object-cover flex-shrink-0 shadow-lg"
+                    />
+                    <div className="min-w-0 flex flex-col gap-0.5">
+                        <p className="text-white text-sm font-semibold truncate">{track.name}</p>
+                        <p className="text-[#B3B3B3] text-xs truncate">
+                            {track.subtitle || track.artists?.[0]?.name}
+                            {albumName && (
+                                <span> &bull; <span className="hover:text-white hover:underline cursor-pointer transition-colors">{albumName}</span></span>
+                            )}
+                        </p>
+                    </div>
+                    <button
+                        onClick={() => toggleLike(track)}
+                        className="ml-1 flex-shrink-0 transition-transform hover:scale-110"
+                        title={liked ? "Quitar de Me gusta" : "Agregar a Me gusta"}
+                    >
+                        {liked
+                            ? <FaHeart className="text-[#1DB954]" size={16} />
+                            : <FaRegHeart className="text-[#B3B3B3] hover:text-white transition-colors" size={16} />
+                        }
                     </button>
-                    <div
-                        ref={volumeBarRef}
-                        className="relative w-24 h-1 bg-[#4D4D4D] rounded-full cursor-pointer group"
-                        onClick={handleVolumeClick}
-                        onMouseDown={handleVolumeMouseDown}
-                    >
-                        <div
-                            className="h-full bg-white group-hover:bg-[#1DB954] rounded-full transition-colors relative pointer-events-none"
-                            style={{ width: `${volume * 100}%` }}
+                </div>
+
+                {/* ── CENTRO ── */}
+                <div className="flex flex-col items-center gap-2 flex-1 max-w-xl">
+                    <div className="flex items-center gap-5">
+                        <button onClick={handleShuffle} title="Aleatorio"
+                            className={`transition-colors ${shuffle ? "text-[#1DB954]" : "text-[#B3B3B3] hover:text-white"}`}>
+                            <FaShuffle size={16} />
+                        </button>
+                        <button onClick={handlePrev} title="Anterior"
+                            className="text-[#B3B3B3] hover:text-white transition-colors">
+                            <FaBackwardStep size={20} />
+                        </button>
+                        <button onClick={togglePlay} title={isPlaying ? "Pausar" : "Reproducir"}
+                            className="w-10 h-10 rounded-full bg-white flex items-center justify-center hover:scale-105 transition-transform shadow-lg">
+                            {isPlaying
+                                ? <FaPause size={16} className="text-black" />
+                                : <FaPlay  size={16} className="text-black ml-0.5" />
+                            }
+                        </button>
+                        <button onClick={handleNext} title="Siguiente"
+                            className="text-[#B3B3B3] hover:text-white transition-colors">
+                            <FaForwardStep size={20} />
+                        </button>
+                        <button
+                            onClick={handleRepeat}
+                            title={repeat === "off" ? "Activar repetición" : repeat === "context" ? "Repetir canción" : "Desactivar repetición"}
+                            className={`transition-colors relative ${repeat !== "off" ? "text-[#1DB954]" : "text-[#B3B3B3] hover:text-white"}`}
                         >
-                            <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow" />
+                            <FaRepeat size={16} />
+                            {repeat !== "off" && (
+                                <span className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#1DB954]" />
+                            )}
+                            {repeat === "track" && (
+                                <span className="absolute -top-2 left-1/2 -translate-x-1/2 text-[9px] font-bold text-[#1DB954] leading-none">1</span>
+                            )}
+                        </button>
+                    </div>
+
+                    {/* Barra de progreso */}
+                    <div className="flex items-center gap-2 w-full">
+                        <span className="text-[#B3B3B3] text-xs w-8 text-right tabular-nums">{formatTime(livePos)}</span>
+                        <div
+                            className="relative flex-1 h-1 bg-[#4D4D4D] rounded-full cursor-pointer group"
+                            onClick={handleSeekClick}
+                        >
+                            <div
+                                className="h-full bg-white group-hover:bg-[#1DB954] rounded-full transition-colors relative pointer-events-none"
+                                style={{ width: `${progress}%` }}
+                            >
+                                <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow" />
+                            </div>
+                        </div>
+                        <span className="text-[#B3B3B3] text-xs w-8 tabular-nums">{formatTime(duration)}</span>
+                    </div>
+
+                    {!isReady && (
+                        <p className="text-yellow-400 text-xs">⚠️ Conectando... (requiere Spotify Premium)</p>
+                    )}
+                </div>
+
+                {/* ── DERECHA ── */}
+                <div className="flex items-center gap-3 w-72 justify-end">
+                    <button className="text-[#B3B3B3] hover:text-white transition-colors" title="Cola">
+                        <BsMusicNoteList size={16} />
+                    </button>
+                    <button className="text-[#B3B3B3] hover:text-white transition-colors" title="Dispositivos">
+                        <MdOutlineDevices size={18} />
+                    </button>
+                    <div className="flex items-center gap-2">
+                        <button onClick={toggleMute} title={volume === 0 ? "Activar" : "Silenciar"}
+                            className="text-[#B3B3B3] hover:text-white transition-colors">
+                            <VolumeIcon size={16} />
+                        </button>
+                        <div
+                            ref={volumeBarRef}
+                            className="relative w-24 h-1 bg-[#4D4D4D] rounded-full cursor-pointer group"
+                            onClick={handleVolumeClick}
+                            onMouseDown={handleVolumeMouseDown}
+                        >
+                            <div
+                                className="h-full bg-white group-hover:bg-[#1DB954] rounded-full transition-colors relative pointer-events-none"
+                                style={{ width: `${volume * 100}%` }}
+                            >
+                                <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow" />
+                            </div>
                         </div>
                     </div>
+                    <button className="text-[#B3B3B3] hover:text-white transition-colors" title="Pantalla completa">
+                        <TbArrowsDiagonal size={16} />
+                    </button>
                 </div>
-                <button className="text-[#B3B3B3] hover:text-white transition-colors" title="Pantalla completa">
-                    <TbArrowsDiagonal size={16} />
-                </button>
             </div>
-        </div>
+        </>
     );
 }

@@ -169,7 +169,7 @@ function LibraryContent({ deviceId, isReady, onTrackSelect, onViewChange, active
     };
 
     return (
-        <div className="bg-[#121212] w-149 h-136 rounded-lg flex flex-col overflow-hidden">
+        <div className="bg-[#121212] w-72 h-136 rounded-lg flex flex-col overflow-hidden">
             {/* Header */}
             <header className="flex items-center justify-between px-4 pt-4 pb-1 h-18 flex-shrink-0">
                 <p className="text-base font-bold text-white">Tu biblioteca</p>

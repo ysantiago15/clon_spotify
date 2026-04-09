@@ -10,11 +10,9 @@ export default function BarraFooter() {
                         <p className="text-sm font-bold text-white">Muestra de Spotify</p>
                         <p className="text-base font-normal text-white">Regístrate para acceder a canciones y podcasts ilimitados con algunos anuncios. No necesitas tarjeta de crédito.</p>
                     </div>
-                    <Link to="/register">
                         <button className="bg-white text-black text-base font-bold px-8 py-3 rounded-full transition-transform duration-300 hover:scale-105 whitespace-nowrap">
                             Regístrate gratis
                         </button>
-                    </Link>
                 </div>
             </Link>
         </div>

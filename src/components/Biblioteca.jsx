@@ -30,7 +30,7 @@ export default function Biblioteca() {
 
     return (
 
-        <div className="bg-[#121212] w-149 h-136 rounded-lg spotify-scroll" onMouseEnter={(e) => e.currentTarget.classList.add('scrollbar-visible')}
+        <div className="bg-[#121212] w-72 h-136 rounded-lg spotify-scroll" onMouseEnter={(e) => e.currentTarget.classList.add('scrollbar-visible')}
   onMouseLeave={(e) => e.currentTarget.classList.remove('scrollbar-visible')}>
             <header className="flex items-center justify-between px-4 pt-4 pb-1 h-18">
                 <p className="text-base font-bold text-white">Tu biblioteca</p>
@@ -42,7 +42,7 @@ export default function Biblioteca() {
                         </span>
                     )}
 
-                    {menuCrear && (<div className="absolute top-12 left-0 bg-[#282828] p-0.5 rounded-lg w-119.5 z-99">
+                    {menuCrear && (<div className="absolute top-12 left-0 bg-[#282828] p-0.5 rounded-lg w-64 z-99">
                         <div className="group p-2 hover:bg-[#3D3D3D] hover:rounded-lg flex items-center gap-3 transition-all duration-200 cursor-default">
                             <div className="relative text-2xl h-12 w-12 bg-[#505050] rounded-full flex items-center justify-center transition-colors duration-150 text-white">
                                 <IoMusicalNotesOutline size={26} className="group-hover:text-[#1FD460] transition-all duration-200 group-hover:rotate-12" />

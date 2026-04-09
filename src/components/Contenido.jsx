@@ -250,7 +250,11 @@ export default function Contenido({
                       onMouseEnter={() => setBtnPlay(true)}
                       onMouseLeave={() => setBtnPlay(false)}
                     >
-                      <div className="w-42.75 h-42.75 relative">
+                      {/* Imagen: móvil → tap directo | desktop → solo botón play con hover */}
+                      <div
+                        className="w-42.75 h-42.75 relative"
+                        onClick={() => handleTrackPlay(track)}
+                      >
                         <img
                           src={track.album?.images?.[0]?.url}
                           alt={track.name}
@@ -258,14 +262,18 @@ export default function Contenido({
                         />
                         {btnPlay && (
                           <div
-                            className="w-12 h-12 bg-[#1ED760] rounded-full flex justify-center items-center shadow-xl/30 absolute bottom-2 right-2 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 ease-out hover:bg-[#1fdf64] hover:scale-105"
-                            onClick={() => handleTrackPlay(track)}
+                            className="hidden md:flex w-12 h-12 bg-[#1ED760] rounded-full justify-center items-center shadow-xl/30 absolute bottom-2 right-2 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 ease-out hover:bg-[#1fdf64] hover:scale-105"
+                            onClick={(e) => { e.stopPropagation(); handleTrackPlay(track); }}
                           >
                             <FaPlay size={18} className="text-black" />
                           </div>
                         )}
                       </div>
-                      <div className="flex flex-col gap-1.5">
+                      {/* Nombre: móvil → tap directo */}
+                      <div
+                        className="flex flex-col gap-1.5"
+                        onClick={() => handleTrackPlay(track)}
+                      >
                         <span className="text-base font-normal text-white truncate">{track.name}</span>
                         <span className="text-sm text-[#B3B3B3] font-normal">{track.artists?.[0]?.name}</span>
                       </div>
@@ -312,18 +320,26 @@ export default function Contenido({
                       onMouseEnter={() => setBtnPlay(true)}
                       onMouseLeave={() => setBtnPlay(false)}
                     >
-                      <div className="w-42.75 h-42.75 relative">
+                      {/* Imagen: móvil → tap directo | desktop → solo botón play con hover */}
+                      <div
+                        className="w-42.75 h-42.75 relative"
+                        onClick={() => handleItemPlay(artist.images?.[0]?.url, artist.name)}
+                      >
                         <img src={artist.images?.[0]?.url} alt={artist.name} className="w-full h-full rounded-full" />
                         {btnPlay && (
                           <div
-                            className="w-12 h-12 bg-[#1ED760] rounded-full flex justify-center items-center shadow-xl/30 absolute bottom-2 right-2 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 ease-out hover:bg-[#1fdf64] hover:scale-105"
-                            onClick={() => handleItemPlay(artist.images?.[0]?.url, artist.name)}
+                            className="hidden md:flex w-12 h-12 bg-[#1ED760] rounded-full justify-center items-center shadow-xl/30 absolute bottom-2 right-2 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 ease-out hover:bg-[#1fdf64] hover:scale-105"
+                            onClick={(e) => { e.stopPropagation(); handleItemPlay(artist.images?.[0]?.url, artist.name); }}
                           >
                             <FaPlay size={18} className="text-black" />
                           </div>
                         )}
                       </div>
-                      <div className="flex flex-col gap-1.5">
+                      {/* Nombre: móvil → tap directo */}
+                      <div
+                        className="flex flex-col gap-1.5"
+                        onClick={() => handleItemPlay(artist.images?.[0]?.url, artist.name)}
+                      >
                         <span className="text-base font-normal text-white">{artist.name}</span>
                         <span className="text-sm text-[#B3B3B3] font-normal cursor-default">Artista</span>
                       </div>
@@ -371,18 +387,26 @@ export default function Contenido({
                       onMouseEnter={() => setBtnPlay(true)}
                       onMouseLeave={() => setBtnPlay(false)}
                     >
-                      <div className="w-42.75 h-42.75 relative">
+                      {/* Imagen: móvil → tap directo | desktop → solo botón play con hover */}
+                      <div
+                        className="w-42.75 h-42.75 relative"
+                        onClick={() => handleAlbumPlay(album)}
+                      >
                         <img src={album.images?.[0]?.url} alt={album.name} className="w-full rounded-lg" />
                         {btnPlay && (
                           <div
-                            className="w-12 h-12 bg-[#1ED760] rounded-full flex justify-center items-center shadow-xl/30 absolute bottom-2 right-2 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 ease-out hover:bg-[#1fdf64] hover:scale-105"
-                            onClick={() => handleAlbumPlay(album)}
+                            className="hidden md:flex w-12 h-12 bg-[#1ED760] rounded-full justify-center items-center shadow-xl/30 absolute bottom-2 right-2 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 ease-out hover:bg-[#1fdf64] hover:scale-105"
+                            onClick={(e) => { e.stopPropagation(); handleAlbumPlay(album); }}
                           >
                             <FaPlay size={18} className="text-black" />
                           </div>
                         )}
                       </div>
-                      <div className="flex flex-col gap-1.5">
+                      {/* Nombre: móvil → tap directo */}
+                      <div
+                        className="flex flex-col gap-1.5"
+                        onClick={() => handleAlbumPlay(album)}
+                      >
                         <span className="text-base font-normal text-white truncate">{album.name}</span>
                         <span className="text-sm text-[#B3B3B3] font-normal">{album.artists?.[0]?.name}</span>
                       </div>

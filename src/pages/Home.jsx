@@ -50,7 +50,7 @@ export default function Home() {
         <div className="flex flex-col h-screen overflow-hidden bg-black">
             <Menu onSearch={handleSearch} />
 
-            <div className="flex flex-1 p-2 gap-2 overflow-hidden">
+            <div className="flex flex-1 p-2 gap-2 overflow-hidden pb-[130px] md:pb-0">
                 {token
                     ? <div className="hidden md:flex">
                           <SpotifyLibrary
