@@ -52,13 +52,15 @@ export default function Home() {
 
             <div className="flex flex-1 p-2 gap-2 overflow-hidden">
                 {token
-                    ? <SpotifyLibrary
-                          deviceId={deviceId}
-                          isReady={isReady}
-                          onTrackSelect={setCurrentTrack}
-                          onViewChange={handleViewChange}
-                          activeView={activeView}
-                      />
+                    ? <div className="hidden md:flex">
+                          <SpotifyLibrary
+                              deviceId={deviceId}
+                              isReady={isReady}
+                              onTrackSelect={setCurrentTrack}
+                              onViewChange={handleViewChange}
+                              activeView={activeView}
+                          />
+                      </div>
                     : <div className="hidden md:block"><Biblioteca /></div>
                 }
 
