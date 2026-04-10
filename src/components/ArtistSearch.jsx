@@ -525,7 +525,7 @@
 //                             <section>
 //                                 <h2 className="text-white font-bold text-xl mb-4">Resultado principal</h2>
 //                                 {mainResult.type === "artist" && (
-//                                     <MainResultArtist artist={mainResult.data} />
+//                                     <MainResultArtist artist={mainResult.data} isLoggedIn={isLoggedIn} onOpenModal={onOpenModal} onArtistPlay={handleArtistPlay} />
 //                                 )}
 //                                 {mainResult.type === "album" && (
 //                                     <MainResultAlbum album={mainResult.data} />
@@ -670,7 +670,8 @@ function TrackRow({ track, index, onPlay }) {
         <div
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
-            className="flex items-center gap-4 px-3 py-2 rounded-md hover:bg-white/10 transition-colors group cursor-pointer"
+            onClick={() => onPlay(track)}
+            className="flex items-center gap-4 px-3 py-2 rounded-md hover:bg-white/10 active:bg-white/20 transition-colors group cursor-pointer"
         >
             <div className="w-6 text-center shrink-0">
                 {hovered ? (
@@ -731,21 +732,24 @@ function TrackRow({ track, index, onPlay }) {
 //         </div>
 //     );
 // }
-function ArtistCard({ artist, isLoggedIn, onOpenModal }) {
+function ArtistCard({ artist, isLoggedIn, onOpenModal, onArtistPlay }) {
     const [hovered, setHovered] = useState(false);
 
     const handlePlay = (e) => {
         e.stopPropagation();
         if (!isLoggedIn) {
             onOpenModal?.({ image: artist.images?.[0]?.url, name: artist.name });
+            return;
         }
+        onArtistPlay?.(artist);
     };
 
     return (
         <div 
             onMouseEnter={() => setHovered(true)} 
             onMouseLeave={() => setHovered(false)} 
-            className="flex flex-col gap-4 p-4 rounded-lg hover:bg-[#282828] transition-all duration-300 cursor-pointer group w-[200px] shrink-0"
+            onClick={handlePlay}
+            className="flex flex-col gap-4 p-4 rounded-lg hover:bg-[#282828] active:bg-[#383838] transition-all duration-300 cursor-pointer group w-[200px] shrink-0"
         >
             <div className="relative w-full aspect-square mb-1">
                 <img 
@@ -794,7 +798,8 @@ function AlbumCard({ album, isLoggedIn, onOpenModal, onAlbumPlay }) {
         <div
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
-            className="group p-3 flex flex-col gap-1.5 w-48.75 hover:bg-[#191919] rounded-lg transition-all duration-300 cursor-pointer shrink-0"
+            onClick={handlePlay}
+            className="group p-3 flex flex-col gap-1.5 w-48.75 hover:bg-[#191919] active:bg-[#282828] rounded-lg transition-all duration-300 cursor-pointer shrink-0"
         >
             <div className="w-42.75 h-42.75 relative">
                 <img
@@ -822,9 +827,13 @@ function AlbumCard({ album, isLoggedIn, onOpenModal, onAlbumPlay }) {
 }
 
 // ─── RESULTADO PRINCIPAL: ARTISTA ─────────────────────────────────────────────
-function MainResultArtist({ artist }) {
+function MainResultArtist({ artist, isLoggedIn, onOpenModal, onArtistPlay }) {
+    const handleClick = () => {
+        if (!isLoggedIn) { onOpenModal?.({ image: artist.images?.[0]?.url, name: artist.name }); return; }
+        onArtistPlay?.(artist);
+    };
     return (
-        <div className="relative rounded-xl bg-[#1a1a1a] hover:bg-[#242424] transition-colors p-5 cursor-pointer group overflow-hidden h-55 ">
+        <div onClick={handleClick} className="relative rounded-xl bg-[#1a1a1a] hover:bg-[#242424] active:bg-[#303030] transition-colors p-5 cursor-pointer group overflow-hidden h-55 ">
             <img src={artist.images?.[0]?.url} alt={artist.name} className="w-23 h-23 rounded-full object-cover shadow-2xl mb-3"/>
                 <h3 className="text-white text-[32px] font-extrabold leading-tight">{artist.name}</h3>
                 <p className="text-[#b3b3b3] text-sm capitalize mt-0.5">{artist.type}</p>
@@ -884,7 +893,7 @@ function MainResultTrack({ track, onPlay }) {
     // const year = track.album?.release_date ? track.album.release_date.split("-")[0] : "";
 
     return (
-        <div className="relative rounded-xl bg-[#1a1a1a] hover:bg-[#242424] transition-colors p-5 cursor-pointer group overflow-hidden h-55">
+        <div onClick={() => onPlay(track)} className="relative rounded-xl bg-[#1a1a1a] hover:bg-[#242424] active:bg-[#303030] transition-colors p-5 cursor-pointer group overflow-hidden h-55">
             {/* Portada */}
             
             <img src={track.album?.images?.[0]?.url} alt={track.name} className="w-23 h-23 rounded-xl object-cover shadow-2xl mb-3"/>
@@ -1013,6 +1022,31 @@ export default function ArtistSearch({ query, deviceId, onTrackSelect, onPlay, i
     const abortRef    = useRef(null);
 
     const filters = ["Todo", "Canciones", "Artistas", "Álbumes"];
+
+    // ── Reproducir primera canción del artista ───────────────────────────────
+    const handleArtistPlay = async (artist) => {
+        if (!isLoggedIn) return;
+        try {
+            const token = localStorage.getItem("spotify_token") || (await _getPublicToken());
+            const res = await fetch(
+                `https://api.spotify.com/v1/search?q=${encodeURIComponent(artist.name)}&type=track&limit=1`,
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            const data = await res.json();
+            const track = data.tracks?.items?.[0];
+            if (!track) return;
+            onTrackSelect?.({
+                uri:      track.uri,
+                name:     track.name,
+                subtitle: track.artists?.[0]?.name,
+                image:    track.album?.images?.[0]?.url,
+                album:    track.album?.name || "",
+            });
+            onPlay?.(track.uri);
+        } catch (e) {
+            console.error("handleArtistPlay error:", e);
+        }
+    };
 
     // ── Reproducir álbum completo en orden ────────────────────────────────────
     const handleAlbumPlay = async (album) => {
@@ -1244,7 +1278,7 @@ export default function ArtistSearch({ query, deviceId, onTrackSelect, onPlay, i
 
                                 <div id="carrusel-artista" className="flex overflow-x-hidden scroll-smooth gap-2 pb-4" style={{ scrollbarWidth: 'none' }}>
                                     {relatedArtists.map((artist) => (
-                                        <ArtistCard key={artist.id} artist={artist} isLoggedIn={isLoggedIn} onOpenModal={onOpenModal} />
+                                        <ArtistCard key={artist.id} artist={artist} isLoggedIn={isLoggedIn} onOpenModal={onOpenModal} onArtistPlay={handleArtistPlay} />
                                     ))}
                                 </div>
 

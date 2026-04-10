@@ -130,15 +130,25 @@ export default function LikedSongs({ onTrackSelect, playTrack, currentTrack, isP
                     </div>
                 ) : (
                     <>
-                        {/* Cabecera tabla */}
+                        {/* ── Cabecera tabla — DESKTOP ── */}
                         <div
-                            className="grid items-center text-[#B3B3B3] text-xs font-medium uppercase tracking-widest border-b border-white/10 pb-3 mb-2 px-4 sticky top-0 bg-[#121212] z-10"
+                            className="hidden md:grid items-center text-[#B3B3B3] text-xs font-medium uppercase tracking-widest border-b border-white/10 pb-3 mb-2 px-4 sticky top-0 bg-[#121212] z-10"
                             style={{ gridTemplateColumns: "36px 1fr 180px 150px 60px" }}
                         >
                             <span className="text-center">#</span>
                             <span>Título</span>
                             <span>Álbum</span>
                             <span>Fecha en que se añadió</span>
+                            <span className="flex justify-end pr-1"><FaClock size={13} /></span>
+                        </div>
+
+                        {/* ── Cabecera tabla — MÓVIL ── */}
+                        <div
+                            className="md:hidden grid items-center text-[#B3B3B3] text-xs font-medium uppercase tracking-widest border-b border-white/10 pb-3 mb-2 px-4 sticky top-0 bg-[#121212] z-10"
+                            style={{ gridTemplateColumns: "32px 1fr 44px" }}
+                        >
+                            <span className="text-center">#</span>
+                            <span>Título</span>
                             <span className="flex justify-end pr-1"><FaClock size={13} /></span>
                         </div>
 
@@ -149,89 +159,95 @@ export default function LikedSongs({ onTrackSelect, playTrack, currentTrack, isP
                             const isHovered    = hoveredIdx === idx;
 
                             return (
-                                <div
-                                    key={song.uri || idx}
-                                    className={`grid items-center px-4 py-2 rounded-md cursor-pointer transition-colors ${isHovered ? "bg-white/[0.08]" : "hover:bg-white/[0.04]"}`}
-                                    style={{ gridTemplateColumns: "36px 1fr 180px 150px 60px" }}
-                                    onMouseEnter={() => setHoveredIdx(idx)}
-                                    onMouseLeave={() => setHoveredIdx(null)}
-                                    onDoubleClick={() => handlePlay(song)}
-                                >
-                                    {/* # / Play / Barras animadas */}
-                                    <div className="flex items-center justify-center h-9">
-                                        {isRowPlaying ? (
-                                            <span className="flex items-end gap-[2.5px] h-4">
-                                                {[55, 100, 70].map((h, i) => (
-                                                    <span
-                                                        key={i}
-                                                        className="w-[3px] rounded-sm bg-[#1DB954]"
-                                                        style={{
-                                                            height: `${h}%`,
-                                                            animation: `barBounce 0.8s ease ${i * 0.15}s infinite alternate`,
-                                                        }}
-                                                    />
-                                                ))}
-                                            </span>
-                                        ) : isHovered ? (
-                                            <button
-                                                onClick={() => handlePlay(song)}
-                                                className="text-white w-full h-full flex items-center justify-center"
-                                            >
-                                                {isCurrent
-                                                    ? <FaPause size={14} />
-                                                    : <FaPlay  size={14} className="ml-0.5" />
-                                                }
-                                            </button>
-                                        ) : (
-                                            <span className={`text-sm tabular-nums ${isCurrent ? "text-[#1DB954]" : "text-[#B3B3B3]"}`}>
-                                                {idx + 1}
-                                            </span>
-                                        )}
-                                    </div>
+                                <div key={song.uri || idx}>
 
-                                    {/* Imagen + Nombre + Artista */}
-                                    <div className="flex items-center gap-3 min-w-0 pr-4">
-                                        {song.image ? (
-                                            <img
-                                                src={song.image}
-                                                alt={song.name}
-                                                className="w-10 h-10 rounded object-cover flex-shrink-0 shadow-md"
-                                            />
-                                        ) : (
-                                            <div className="w-10 h-10 rounded bg-[#282828] flex items-center justify-center flex-shrink-0">
-                                                <FaHeart size={14} className="text-[#555]" />
+                                    {/* ── Fila DESKTOP ── */}
+                                    <div
+                                        className={`hidden md:grid items-center px-4 py-2 rounded-md cursor-pointer transition-colors ${isHovered ? "bg-white/[0.08]" : "hover:bg-white/[0.04]"}`}
+                                        style={{ gridTemplateColumns: "36px 1fr 180px 150px 60px" }}
+                                        onMouseEnter={() => setHoveredIdx(idx)}
+                                        onMouseLeave={() => setHoveredIdx(null)}
+                                        onDoubleClick={() => handlePlay(song)}
+                                    >
+                                        <div className="flex items-center justify-center h-9">
+                                            {isRowPlaying ? (
+                                                <span className="flex items-end gap-[2.5px] h-4">
+                                                    {[55, 100, 70].map((h, i) => (
+                                                        <span key={i} className="w-[3px] rounded-sm bg-[#1DB954]"
+                                                            style={{ height: `${h}%`, animation: `barBounce 0.8s ease ${i * 0.15}s infinite alternate` }} />
+                                                    ))}
+                                                </span>
+                                            ) : isHovered ? (
+                                                <button onClick={() => handlePlay(song)} className="text-white w-full h-full flex items-center justify-center">
+                                                    {isCurrent ? <FaPause size={14} /> : <FaPlay size={14} className="ml-0.5" />}
+                                                </button>
+                                            ) : (
+                                                <span className={`text-sm tabular-nums ${isCurrent ? "text-[#1DB954]" : "text-[#B3B3B3]"}`}>{idx + 1}</span>
+                                            )}
+                                        </div>
+                                        <div className="flex items-center gap-3 min-w-0 pr-4">
+                                            {song.image
+                                                ? <img src={song.image} alt={song.name} className="w-10 h-10 rounded object-cover flex-shrink-0 shadow-md" />
+                                                : <div className="w-10 h-10 rounded bg-[#282828] flex items-center justify-center flex-shrink-0"><FaHeart size={14} className="text-[#555]" /></div>
+                                            }
+                                            <div className="min-w-0">
+                                                <p className={`text-sm font-medium truncate ${isCurrent ? "text-[#1DB954]" : "text-white"}`}>{song.name}</p>
+                                                <p className="text-xs text-[#B3B3B3] truncate mt-0.5 hover:text-white hover:underline cursor-pointer transition-colors">{song.subtitle}</p>
                                             </div>
-                                        )}
-                                        <div className="min-w-0">
-                                            <p className={`text-sm font-medium truncate ${isCurrent ? "text-[#1DB954]" : "text-white"}`}>
-                                                {song.name}
-                                            </p>
-                                            <p className="text-xs text-[#B3B3B3] truncate mt-0.5 hover:text-white hover:underline cursor-pointer transition-colors">
-                                                {song.subtitle}
-                                            </p>
+                                        </div>
+                                        <span className="text-xs text-[#B3B3B3] truncate pr-6 hover:text-white hover:underline cursor-pointer transition-colors">{song.album || "—"}</span>
+                                        <span className="text-xs text-[#B3B3B3]">{formatDateAdded(song.likedAt)}</span>
+                                        <div className="flex items-center justify-end pr-1">
+                                            <button onClick={e => { e.stopPropagation(); toggleLike(song); }}
+                                                className={`transition-all hover:scale-110 active:scale-95 ${isHovered || isCurrent ? "opacity-100" : "opacity-0"}`}>
+                                                <FaHeart size={15} className="text-[#1DB954]" />
+                                            </button>
                                         </div>
                                     </div>
 
-                                    {/* Álbum */}
-                                    <span className="text-xs text-[#B3B3B3] truncate pr-6 hover:text-white hover:underline cursor-pointer transition-colors">
-                                        {song.album || "—"}
-                                    </span>
+                                    {/* ── Fila MÓVIL ── */}
+                                    <div
+                                        className={`md:hidden grid items-center px-4 py-2 rounded-md cursor-pointer transition-colors active:bg-white/[0.08] ${isCurrent ? "bg-white/[0.04]" : ""}`}
+                                        style={{ gridTemplateColumns: "32px 1fr 44px" }}
+                                        onClick={() => handlePlay(song)}
+                                    >
+                                        {/* Índice / barras animadas */}
+                                        <div className="flex items-center justify-center h-10">
+                                            {isRowPlaying ? (
+                                                <span className="flex items-end gap-[2.5px] h-4">
+                                                    {[55, 100, 70].map((h, i) => (
+                                                        <span key={i} className="w-[3px] rounded-sm bg-[#1DB954]"
+                                                            style={{ height: `${h}%`, animation: `barBounce 0.8s ease ${i * 0.15}s infinite alternate` }} />
+                                                    ))}
+                                                </span>
+                                            ) : (
+                                                <span className={`text-sm tabular-nums ${isCurrent ? "text-[#1DB954]" : "text-[#B3B3B3]"}`}>{idx + 1}</span>
+                                            )}
+                                        </div>
 
-                                    {/* Fecha añadida */}
-                                    <span className="text-xs text-[#B3B3B3]">
-                                        {formatDateAdded(song.likedAt)}
-                                    </span>
+                                        {/* Imagen + Nombre + Artista */}
+                                        <div className="flex items-center gap-3 min-w-0">
+                                            {song.image
+                                                ? <img src={song.image} alt={song.name} className="w-10 h-10 rounded object-cover flex-shrink-0 shadow-md" />
+                                                : <div className="w-10 h-10 rounded bg-[#282828] flex items-center justify-center flex-shrink-0"><FaHeart size={14} className="text-[#555]" /></div>
+                                            }
+                                            <div className="min-w-0">
+                                                <p className={`text-sm font-semibold truncate leading-tight ${isCurrent ? "text-[#1DB954]" : "text-white"}`}>{song.name}</p>
+                                                <p className="text-xs text-[#B3B3B3] truncate mt-0.5 leading-tight">{song.subtitle}</p>
+                                            </div>
+                                        </div>
 
-                                    {/* Corazón para quitar */}
-                                    <div className="flex items-center justify-end pr-1">
-                                        <button
-                                            onClick={e => { e.stopPropagation(); toggleLike(song); }}
-                                            title="Quitar de Me gusta"
-                                            className={`transition-all hover:scale-110 active:scale-95 ${isHovered || isCurrent ? "opacity-100" : "opacity-0"}`}
-                                        >
-                                            <FaHeart size={15} className="text-[#1DB954]" />
-                                        </button>
+                                        {/* Duración */}
+                                        <div className="flex items-center justify-end">
+                                            <span className="text-xs text-[#B3B3B3] tabular-nums">
+                                                {song.duration_ms
+                                                    ? `${Math.floor(song.duration_ms / 60000)}:${Math.floor((song.duration_ms % 60000) / 1000).toString().padStart(2, "0")}`
+                                                    : "—"
+                                                }
+                                            </span>
+                                        </div>
                                     </div>
+
                                 </div>
                             );
                         })}

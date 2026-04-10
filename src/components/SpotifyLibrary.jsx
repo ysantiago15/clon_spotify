@@ -168,8 +168,11 @@ function LibraryContent({ deviceId, isReady, onTrackSelect, onViewChange, active
         });
     };
 
+    // En móvil solo mostramos "Canciones que te gustan"
+    const displayItems = window.innerWidth < 768 ? [likedItem] : filtered;
+
     return (
-        <div className="bg-[#121212] w-72 h-136 rounded-lg flex flex-col overflow-hidden">
+        <div className="bg-[#121212] w-full md:w-72 h-full md:h-136 rounded-lg flex flex-col overflow-hidden">
             {/* Header */}
             <header className="flex items-center justify-between px-4 pt-4 pb-1 h-18 flex-shrink-0">
                 <p className="text-base font-bold text-white">Tu biblioteca</p>
@@ -239,8 +242,8 @@ function LibraryContent({ deviceId, isReady, onTrackSelect, onViewChange, active
                 </div>
             )}
 
-            {/* Filtros */}
-            <div className="flex gap-2 px-4 pt-2 pb-3 flex-wrap flex-shrink-0">
+            {/* Filtros — solo desktop */}
+            <div className="hidden md:flex gap-2 px-4 pt-2 pb-3 flex-wrap flex-shrink-0">
                 {FILTERS.map(f => (
                     <button
                         key={f}
@@ -255,7 +258,7 @@ function LibraryContent({ deviceId, isReady, onTrackSelect, onViewChange, active
                 ))}
             </div>
 
-            <div className="flex items-center px-4 pb-2 flex-shrink-0">
+            <div className="hidden md:flex items-center px-4 pb-2 flex-shrink-0">
                 <span className="text-[#b3b3b3] text-base">🔍</span>
                 <button className="ml-auto flex items-center gap-1 text-[#b3b3b3] text-[13px] hover:text-white transition-colors">
                     Recientes <span className="text-lg">≡</span>
@@ -278,7 +281,7 @@ function LibraryContent({ deviceId, isReady, onTrackSelect, onViewChange, active
                             </div>
                         </div>
                     ))
-                ) : filtered.length === 0 ? (
+                ) : displayItems.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-12 gap-2">
                         {activeFilter === "Me gusta"
                             ? <>
@@ -290,7 +293,7 @@ function LibraryContent({ deviceId, isReady, onTrackSelect, onViewChange, active
                         }
                     </div>
                 ) : (
-                    filtered.map(item => {
+                    displayItems.map(item => {
                         const isHovered = hoveredId === item.id;
                         const isPlaying = playingId === item.id;
                         return (

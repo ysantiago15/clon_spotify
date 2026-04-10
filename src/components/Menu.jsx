@@ -7,7 +7,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import MenuMovil from "./MenuMovil";
 
-export default function Menu({ onSearch }) {
+export default function Menu({ onSearch, mobileView, setMobileView }) {
   const [inputBtnX, setInputBtnX]           = useState("");
   const [mostrarTooltip, setMostrarTooltip] = useState("");
   const [menuUser, setMenuUser]             = useState(false);
@@ -36,7 +36,7 @@ export default function Menu({ onSearch }) {
   return (
     <>
       {/* MenuMovil: barra inferior + drawer — solo visible en móvil */}
-      <MenuMovil drawerOpen={drawerOpen} setDrawerOpen={setDrawerOpen} onSearch={onSearch} />
+      <MenuMovil drawerOpen={drawerOpen} setDrawerOpen={setDrawerOpen} onSearch={onSearch} mobileView={mobileView} setMobileView={setMobileView} />
 
     <header className="bg-black w-screen top-0 z-10 px-4 md:pl-6 md:pr-0 opacity-90 h-16 flex items-center">
       <nav className="flex w-full justify-between text-white">
