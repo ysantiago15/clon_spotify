@@ -324,53 +324,88 @@ export default function Player({
                 style={{ bottom: "calc(60px + env(safe-area-inset-bottom, 0px) + 6px)" }}
             >
                 {/* Card */}
-                <div className="bg-[#1a1a1a] rounded-xl px-3 py-2 flex items-center gap-3 shadow-2xl border border-white/10">
-                    {/* Imagen */}
-                    <img
-                        src={track.image || track.album?.images?.[0]?.url}
-                        alt={track.name}
-                        className="w-11 h-11 rounded-lg object-cover flex-shrink-0 shadow-md"
-                    />
+                <div className="bg-[#1a1a1a] rounded-xl shadow-2xl border border-white/10 overflow-hidden">
+                    {/* Fila principal */}
+                    <div className="px-3 py-2 flex items-center gap-3">
+                        {/* Imagen */}
+                        <img
+                            src={track.image || track.album?.images?.[0]?.url}
+                            alt={track.name}
+                            className="w-11 h-11 rounded-lg object-cover flex-shrink-0 shadow-md"
+                        />
 
-                    {/* Nombre + artista */}
-                    <div className="flex-1 min-w-0">
-                        <p className="text-white text-sm font-semibold truncate leading-tight">{track.name}</p>
-                        <p className="text-[#B3B3B3] text-xs truncate leading-tight mt-0.5">
-                            {track.subtitle || track.artists?.[0]?.name}
-                        </p>
+                        {/* Nombre + artista */}
+                        <div className="flex-1 min-w-0">
+                            <p className="text-white text-sm font-semibold truncate leading-tight">{track.name}</p>
+                            <p className="text-[#B3B3B3] text-xs truncate leading-tight mt-0.5">
+                                {track.subtitle || track.artists?.[0]?.name}
+                            </p>
+                        </div>
+
+                        {/* Corazón */}
+                        <button
+                            onClick={() => toggleLike(track)}
+                            className="flex-shrink-0 p-1.5 active:scale-90 transition-transform"
+                            title={liked ? "Quitar de Me gusta" : "Agregar a Me gusta"}
+                        >
+                            {liked
+                                ? <FaHeart className="text-[#1DB954]" size={20} />
+                                : <FaRegHeart className="text-[#B3B3B3]" size={20} />
+                            }
+                        </button>
+
+                        {/* Play / Pause */}
+                        <button
+                            onClick={togglePlay}
+                            className="flex-shrink-0 p-1.5 active:scale-90 transition-transform"
+                            title={isPlaying ? "Pausar" : "Reproducir"}
+                        >
+                            {isPlaying
+                                ? <FaPause className="text-white" size={22} />
+                                : <FaPlay  className="text-white ml-0.5" size={22} />
+                            }
+                        </button>
                     </div>
 
-                    {/* Corazón */}
-                    <button
-                        onClick={() => toggleLike(track)}
-                        className="flex-shrink-0 p-1.5 active:scale-90 transition-transform"
-                        title={liked ? "Quitar de Me gusta" : "Agregar a Me gusta"}
-                    >
-                        {liked
-                            ? <FaHeart className="text-[#1DB954]" size={20} />
-                            : <FaRegHeart className="text-[#B3B3B3]" size={20} />
-                        }
-                    </button>
-
-                    {/* Play / Pause */}
-                    <button
-                        onClick={togglePlay}
-                        className="flex-shrink-0 p-1.5 active:scale-90 transition-transform"
-                        title={isPlaying ? "Pausar" : "Reproducir"}
-                    >
-                        {isPlaying
-                            ? <FaPause className="text-white" size={22} />
-                            : <FaPlay  className="text-white ml-0.5" size={22} />
-                        }
-                    </button>
-                </div>
-
-                {/* Barra de progreso delgada debajo del card */}
-                <div className="h-0.5 bg-white/15 rounded-full mt-1 mx-1 overflow-hidden">
+                    {/* Barra de progreso — pegada al fondo del card, interactiva */}
                     <div
-                        className="h-full bg-[#1DB954] rounded-full transition-all duration-500"
-                        style={{ width: `${progress}%` }}
-                    />
+                        className="relative w-full h-[3px] bg-white/20 cursor-pointer"
+                        onClick={(e) => {
+                            if (!duration) return;
+                            const rect  = e.currentTarget.getBoundingClientRect();
+                            const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+                            const ms    = ratio * duration;
+                            setLivePos(ms);
+                            seek?.(ms);
+                        }}
+                        onTouchStart={(e) => {
+                            e.stopPropagation();
+                            const touch = e.touches[0];
+                            const rect  = e.currentTarget.getBoundingClientRect();
+                            const ratio = Math.max(0, Math.min(1, (touch.clientX - rect.left) / rect.width));
+                            setLivePos(ratio * duration);
+                            seek?.(ratio * duration);
+                        }}
+                        onTouchMove={(e) => {
+                            e.stopPropagation();
+                            const touch = e.touches[0];
+                            const rect  = e.currentTarget.getBoundingClientRect();
+                            const ratio = Math.max(0, Math.min(1, (touch.clientX - rect.left) / rect.width));
+                            setLivePos(ratio * duration);
+                        }}
+                        onTouchEnd={(e) => {
+                            e.stopPropagation();
+                            const touch = e.changedTouches[0];
+                            const rect  = e.currentTarget.getBoundingClientRect();
+                            const ratio = Math.max(0, Math.min(1, (touch.clientX - rect.left) / rect.width));
+                            seek?.(ratio * duration);
+                        }}
+                    >
+                        <div
+                            className="h-full bg-white pointer-events-none"
+                            style={{ width: `${progress}%` }}
+                        />
+                    </div>
                 </div>
             </div>
 
