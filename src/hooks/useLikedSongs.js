@@ -1,11 +1,3 @@
-// src/hooks/useLikedSongs.js
-// ─────────────────────────────────────────────────────────────────────────────
-// Maneja los "Me gusta" del usuario en Firestore.
-// Colección: users/{uid}/likedSongs/{trackId}
-//
-// Uso:
-//   const { likedSongs, isLiked, toggleLike } = useLikedSongs();
-// ─────────────────────────────────────────────────────────────────────────────
 import { useEffect, useState } from "react";
 import {
     collection,

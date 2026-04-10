@@ -1,4 +1,4 @@
-// src/components/Contenido.jsx
+
 import { FaFacebook, FaInstagram, FaPlay, FaTwitter } from "react-icons/fa";
 import { useEffect, useRef, useState } from "react";
 import SpotifyModal from "./SpotifyModal";

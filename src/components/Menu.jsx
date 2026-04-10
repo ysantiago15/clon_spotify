@@ -1,4 +1,4 @@
-// src/components/Menu.jsx
+
 import { useState } from "react";
 import { AiFillHome } from "react-icons/ai";
 import { FaSpotify } from "react-icons/fa";

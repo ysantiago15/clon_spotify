@@ -1,4 +1,4 @@
-// src/pages/Home.jsx
+
 import { useEffect, useState } from "react";
 import Biblioteca from "../components/Biblioteca";
 import BarraFooter from "../components/BarraFooter";
@@ -7,17 +7,29 @@ import Contenido from "../components/Contenido";
 import Menu from "../components/Menu";
 import Player from "../components/Player";
 import LikedSongs from "../components/LikedSongs";
-import { loginWithSpotify } from "../config/spotify";
+import { loginWithSpotify, getToken, needsReauth } from "../config/spotify"; // ✅ CAMBIO: añadir getToken y needsReauth
 import { useSpotifyPlayer } from "../hooks/useSpotifyPlayer";
 import { useAuth } from "../context/AuthContext";
 
 export default function Home() {
     const { user } = useAuth();
 
-    // Token reactivo: se actualiza cuando user cambia (ej. primer login)
-    const [token, setToken] = useState(() => user ? localStorage.getItem("spotify_token") : null);
+    // ✅ CAMBIO: verificar y renovar el token de Spotify al montar y cuando cambia el usuario
+    // Antes leía localStorage directamente (podía estar vencido → 401 silencioso)
+    const [token, setToken] = useState(null);
     useEffect(() => {
-        setToken(user ? localStorage.getItem("spotify_token") : null);
+        async function initSpotifyToken() {
+            if (!user) { setToken(null); return; }
+            if (needsReauth()) { setToken(null); return; }
+            try {
+                const validToken = await getToken(); // renueva si está por vencer
+                setToken(validToken);
+            } catch {
+                // Token expirado y no se pudo renovar → limpiar
+                setToken(null);
+            }
+        }
+        initSpotifyToken();
     }, [user]);
 
     const [searchQuery,  setSearchQuery]  = useState("");

@@ -1,6 +1,4 @@
-// src/router/AppRouter.jsx
-// BrowserRouter vive AQUÍ (un solo lugar en toda la app).
-// AuthProvider está en App.jsx, por encima.
+
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 

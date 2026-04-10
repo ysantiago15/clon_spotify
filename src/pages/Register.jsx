@@ -1,4 +1,4 @@
-// src/pages/Register.jsx
+
 import { useState } from "react";
 import { FaApple, FaMobileAlt, FaSpotify } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";

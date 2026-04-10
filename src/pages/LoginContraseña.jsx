@@ -1,4 +1,4 @@
-// src/pages/LoginContraseña.jsx
+
 import { useEffect, useState } from "react";
 import { FiChevronLeft, FiEye, FiEyeOff } from "react-icons/fi";
 import { useLocation, useNavigate } from "react-router-dom";

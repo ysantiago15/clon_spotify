@@ -1,4 +1,4 @@
-// src/components/MenuMovil.jsx
+
 import { useRef, useState } from "react";
 import { AiFillHome } from "react-icons/ai";
 import { FiSearch, FiX } from "react-icons/fi";

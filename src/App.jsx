@@ -1,4 +1,4 @@
-// src/App.jsx
+
 import { AuthProvider } from "./context/AuthContext";
 import AppRouter from "./router/AppRouter";
 import '../src/style/tailwind.css';

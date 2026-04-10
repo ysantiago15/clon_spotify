@@ -1,4 +1,4 @@
-// src/components/Player.jsx
+
 import { useEffect, useRef, useState } from "react";
 import {
     FaPlay, FaPause, FaShuffle, FaBackwardStep,

@@ -1,4 +1,4 @@
-// src/pages/Login.jsx
+
 import { useState } from "react";
 import { FaApple, FaFacebook, FaMobileAlt, FaSpotify } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
