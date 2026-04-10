@@ -1,37 +1,12 @@
-// export async function playTrack(deviceId, trackUri) {
-//     const token = localStorage.getItem("spotify_token");
-//     if (!token) { console.error("Sin token"); return; }
-
-//     try {
-//         const response = await fetch(
-//             `https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`,
-//             {
-//                 method: "PUT",
-//                 headers: {
-//                     Authorization:  `Bearer ${token}`,
-//                     "Content-Type": "application/json",
-//                 },
-//                 body: JSON.stringify({ uris: [trackUri] }),
-//             }
-//         );
-
-//         if (response.status === 204) {
-//             console.log("✅ Reproduciendo:", trackUri);
-//         } else {
-//             const err = await response.json().catch(() => ({}));
-//             console.error("❌ Error Spotify:", err);
-//         }
-//     } catch (error) {
-//         console.error("❌ Error en playTrack:", error);
-//     }
-// }
+import { getToken } from './spotify';
 
 // ===============================
 // 💿 REPRODUCIR ÁLBUM COMPLETO (en orden)
 // ===============================
 export async function playAlbum(deviceId, trackUris) {
-    const token = localStorage.getItem("spotify_token");
-    if (!token) { console.error("Sin token"); return; }
+    // ✅ CAMBIO: usa getToken() para obtener siempre un token válido y renovado
+    let token;
+    try { token = await getToken(); } catch { console.error("Sin token"); return; }
     if (!trackUris?.length) { console.error("Sin URIs de tracks"); return; }
 
     try {
@@ -60,8 +35,9 @@ export async function playAlbum(deviceId, trackUris) {
 }
 
 export async function playTrack(deviceId, trackUri) {
-    const token = localStorage.getItem("spotify_token");
-    if (!token) { console.error("Sin token"); return; }
+    // ✅ CAMBIO: usa getToken() para obtener siempre un token válido y renovado
+    let token;
+    try { token = await getToken(); } catch { console.error("Sin token"); return; }
 
     try {
         const response = await fetch(

@@ -55,7 +55,7 @@ export default function LikedSongs({ onTrackSelect, playTrack, currentTrack, isP
         >
             {/* ── HEADER ─────────────────────────────────────────────────────── */}
             <div
-                className="relative flex items-end gap-6 px-8 pb-8 pt-16 flex-shrink-0"
+                className="relative flex items-end gap-6 px-8 pb-8 pt-16 shrink-0"
                 style={{ background: "linear-gradient(180deg, #5038a0 0%, #3b2080 50%, #1e1060 100%)" }}
             >
                 {/* Portada */}

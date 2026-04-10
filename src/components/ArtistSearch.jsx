@@ -749,7 +749,7 @@ function ArtistCard({ artist, isLoggedIn, onOpenModal, onArtistPlay }) {
             onMouseEnter={() => setHovered(true)} 
             onMouseLeave={() => setHovered(false)} 
             onClick={handlePlay}
-            className="flex flex-col gap-4 p-4 rounded-lg hover:bg-[#282828] active:bg-[#383838] transition-all duration-300 cursor-pointer group w-[200px] shrink-0"
+            className="flex flex-col gap-4 p-4 rounded-lg hover:bg-[#282828] active:bg-[#383838] transition-all duration-300 cursor-pointer group w-50 shrink-0"
         >
             <div className="relative w-full aspect-square mb-1">
                 <img 

@@ -273,11 +273,11 @@
 //   }, 500);
 // }
 
-// const CLIENT_ID    = 'd1469fd9081a43869a64fdbfda7b80f1';
-// const REDIRECT_URI = 'http://127.0.0.1:5173/callback';
+// ✅ CAMBIO: quitado hardcodeo, ahora usa variables de entorno
+// const CLIENT_ID    = 'd1469fd9081a43869a64fdbfda7b80f1';  // ❌ antes
+// const REDIRECT_URI = 'http://127.0.0.1:5173/callback';     // ❌ antes
 
 const CLIENT_ID     = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
-const CLIENT_SECRET = import.meta.env.VITE_SPOTIFY_CLIENT_SECRET;
 const REDIRECT_URI  = import.meta.env.VITE_SPOTIFY_REDIRECT_URI;
 
 // ⚠️ Si cambias scopes, cambia también SCOPES_VERSION para forzar re-auth
