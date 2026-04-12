@@ -117,6 +117,7 @@ export default function Register() {
       if (!recaptchaVerifier.current) {
         recaptchaVerifier.current = new RecaptchaVerifier(auth, recaptchaRef.current, {
           size: "invisible",
+          siteKey: import.meta.env.VITE_RECAPTCHA_ENTERPRISE_KEY,
         });
       }
       const provider = new PhoneAuthProvider(auth);
