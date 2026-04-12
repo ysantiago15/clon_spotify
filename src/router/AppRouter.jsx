@@ -10,6 +10,8 @@ import LoginContraseña  from "../pages/LoginContraseña";
 import Register         from "../pages/Register";
 import Callback         from "../pages/Callback";
 import Crear            from "../pages/Crear";
+import LoginTelefono from "../pages/LoginTelefono";
+import LoginCodigo from "../pages/LoginCodigo";
 
 // ── Loading ───────────────────────────────────────────────────────────────────
 function LoadingScreen() {
@@ -41,6 +43,8 @@ export default function AppRouter() {
         <Route path="/login2"             element={<PublicOnlyRoute><Login2 /></PublicOnlyRoute>} />
         <Route path="/login_contrasena"   element={<PublicOnlyRoute><LoginContraseña /></PublicOnlyRoute>} />
         <Route path="/register"           element={<PublicOnlyRoute><Register /></PublicOnlyRoute>} />
+        <Route path="/login_telefono" element={<PublicOnlyRoute><LoginTelefono /></PublicOnlyRoute>} />
+        <Route path="/login_codigo"   element={<PublicOnlyRoute><LoginCodigo /></PublicOnlyRoute>} />
 
         <Route path="/callback"           element={<Callback />} />
         <Route path="/crear"              element={<Crear />} />

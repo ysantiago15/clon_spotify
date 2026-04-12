@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { FaApple, FaFacebook, FaMobileAlt, FaSpotify } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
@@ -69,7 +68,11 @@ export default function Login() {
           <span className="text-white text-base text-center">o</span>
         </div>
 
-        <button className="w-full border border-[#7C7C7C] text-white font-bold pr-8 py-2 pl-7 rounded-full flex items-center justify-center gap-3 hover:border-white transition-all duration-200 mb-2 hover:scale-105">
+        {/* ← ÚNICO CAMBIO: onClick navega a /login_telefono */}
+        <button
+          onClick={() => navigate("/login_telefono")}
+          className="w-full border border-[#7C7C7C] text-white font-bold pr-8 py-2 pl-7 rounded-full flex items-center justify-center gap-3 hover:border-white transition-all duration-200 mb-2 hover:scale-105"
+        >
           <FaMobileAlt size={24} />
           <span className="w-full text-center">Continuar con un número de teléfono</span>
         </button>
@@ -82,12 +85,12 @@ export default function Login() {
           <span className="w-full text-center text-base">Continuar con Google</span>
         </button>
 
-        <button className="w-full border border-[#7C7C7C] text-white font-bold rounded-full flex items-center justify-center gap-3 hover:border-white transition-all duration-200 pr-8 py-3 mb-2 pl-7 hover:scale-105">
+        {/* <button className="w-full border border-[#7C7C7C] text-white font-bold rounded-full flex items-center justify-center gap-3 hover:border-white transition-all duration-200 pr-8 py-3 mb-2 pl-7 hover:scale-105">
           <div className="bg-white rounded-full w-6 h-6 flex items-center justify-center">
             <FaFacebook className="text-[#1877F2] w-7 h-7" />
           </div>
           <span className="w-full text-center text-base">Continuar con Facebook</span>
-        </button>
+        </button> */}
 
         <button className="w-full border border-[#7C7C7C] text-white font-bold rounded-full flex items-center justify-center gap-3 hover:border-white transition-all duration-200 pr-8 py-3 pl-7 hover:scale-105">
           <FaApple size={24} />

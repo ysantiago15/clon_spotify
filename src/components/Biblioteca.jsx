@@ -6,6 +6,7 @@ import { FiFolder, FiGlobe, FiPlus } from "react-icons/fi";
 import { IoMusicalNotesOutline } from "react-icons/io5";
 import { MdContrast, MdFolderOpen, MdLanguage, MdLibraryAdd, MdPlaylistAdd } from "react-icons/md";
 import { TbCircleHalf2, TbWorld } from "react-icons/tb";
+import { Link } from "react-router-dom";
 
 export default function Biblioteca() {
 
@@ -30,20 +31,20 @@ export default function Biblioteca() {
 
     return (
 
-        <div className="bg-[#121212] w-72 h-136 rounded-lg spotify-scroll" onMouseEnter={(e) => e.currentTarget.classList.add('scrollbar-visible')}
+        <div className="bg-[#121212] w-98.5 h-136 rounded-lg spotify-scroll" onMouseEnter={(e) => e.currentTarget.classList.add('scrollbar-visible')}
   onMouseLeave={(e) => e.currentTarget.classList.remove('scrollbar-visible')}>
             <header className="flex items-center justify-between px-4 pt-4 pb-1 h-18">
                 <p className="text-base font-bold text-white">Tu biblioteca</p>
                 <div ref={menuRef} className="relative">
                     <button onMouseEnter={() => setMostrarTooltip("Crear")} onMouseLeave={() => setMostrarTooltip("")} className="flex group items-center gap-2 text-white text-sm  transition-colors duration-300 font-bold bg-[#1F1F1F] py-2 px-4 hover:bg-[#2b2b2b] rounded-3xl " onClick={() => setMenuCrear(!menuCrear)}><FiPlus className={`text-2xl text-gray-300 group-hover:text-white transition-all duration-150 focus:outline-none ${menuCrear ? "rotate-45" : "rotate-0"}`} />Crear</button>
                     {mostrarTooltip === "Crear" && (
-                        <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-[#3b3b3b] text-white font-bold text-sm px-2 py-1 rounded whitespace-nowrap">
+                        <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-[#3b3b3b] text-white font-bold text-sm px-2 py-1 rounded-lg whitespace-nowrap">
                             Crea una playlist, carpeta o jam.
                         </span>
                     )}
 
-                    {menuCrear && (<div className="absolute top-12 left-0 bg-[#282828] p-0.5 rounded-lg w-64 z-99">
-                        <div className="group p-2 hover:bg-[#3D3D3D] hover:rounded-lg flex items-center gap-3 transition-all duration-200 cursor-default">
+                    {menuCrear && (<div className="absolute top-12 left-0 bg-[#282828] p-0.5 rounded-lg w-117 z-99">
+                        <div className="group p-2 hover:bg-[#3D3D3D] hover:rounded-lg flex items-center gap-3 transition-all duration-200 cursor-default ">
                             <div className="relative text-2xl h-12 w-12 bg-[#505050] rounded-full flex items-center justify-center transition-colors duration-150 text-white">
                                 <IoMusicalNotesOutline size={26} className="group-hover:text-[#1FD460] transition-all duration-200 group-hover:rotate-12" />
                                 <AiOutlinePlus className="absolute bg-[#505050] rounded-full top-2.75 left-3 text-[13px] font-black group-hover:text-[#1FD460] transition-all duration-200 group-hover:rotate-12" />
@@ -102,20 +103,30 @@ export default function Biblioteca() {
 
                         {
                             modalCrearPlaylist && (
-                                <div className="absolute top-0 left-110 z-20 flex ">
-                                    <div className="relative">
-                                        <div className="absolute bottom-12 -left-2.5 w-0 h-0 border-t-8 border-t-transparent border-b-8 border-b-transparent border-r-10 border-r-[#0C69D8]" />
-                                        <div className="bg-[#0C69D8] w-83 h-34.5 p-4 rounded-lg">
-                                            <p className="text-base font-bold mb-1">Crea una playlist</p>
-                                            <p className="text-sm font-medium">Inicia sesión para crear y compartir playlists.</p>
-                                            <div className="mt-6 flex justify-end gap-4">
-                                                <button onClick={()=>setModalCrearPlaylist(false)} className="text-sm transition-all duration-200 hover:scale-103">Ahora no</button>
-                                                <button className="bg-white text-black py-1.5 px-4 rounded-full text-sm transition-all duration-200 hover:scale-103">Iniciar sesión</button>
+                                <>
+                                    {/* Overlay transparente: clic fuera cierra el modal */}
+                                    <div
+                                        className="fixed inset-0 z-10"
+                                        onClick={() => setModalCrearPlaylist(false)}
+                                    />
+                                    <div className="absolute top-0 left-102 z-20 flex">
+                                        <div className="relative">
+                                            <div className="absolute bottom-12 -left-2.5 w-0 h-0 border-t-8 border-t-transparent border-b-8 border-b-transparent border-r-10 border-r-[#0C69D8]" />
+                                            <div className="bg-[#0C69D8] w-83 h-34.5 p-4 rounded-lg">
+                                                <p className="text-base font-bold mb-1">Crea una playlist</p>
+                                                <p className="text-sm font-medium">Inicia sesión para crear y compartir playlists.</p>
+                                                <div className="mt-6 flex justify-end gap-4">
+                                                    <button onClick={() => setModalCrearPlaylist(false)} className="text-sm transition-all duration-200 hover:scale-103">Ahora no</button>
+                                                    <Link to="/login">
+                                                        <button className="bg-white text-black py-1.5 px-4 rounded-full text-sm transition-all duration-200 hover:scale-103">
+                                                            Iniciar sesión
+                                                        </button>
+                                                    </Link>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-
-                                </div>
+                                </>
                             )
                         }
 
