@@ -172,7 +172,7 @@ function LibraryContent({ deviceId, isReady, onTrackSelect, onViewChange, active
     const displayItems = window.innerWidth < 768 ? [likedItem] : filtered;
 
     return (
-        <div className="bg-[#121212] w-full md:w-72 h-full md:h-136 rounded-lg flex flex-col overflow-hidden">
+        <div className="bg-[#121212] w-full md:w-98.5 h-full md:h-136 rounded-lg flex flex-col overflow-hidden">
             {/* Header */}
             <header className="flex items-center justify-between px-4 pt-4 pb-1 h-18 flex-shrink-0">
                 <p className="text-base font-bold text-white">Tu biblioteca</p>

@@ -62,13 +62,13 @@ export default function SpotifyModal({ isOpen, onClose, data }) {
                     <FiX size={18} />
                 </button>
 
-                {/* Imagen arriba — más pequeña */}
+                {/* Imagen arriba — completa sin recortar */}
                 {data.image && (
-                    <div className="w-full h-56">
+                    <div className="w-full flex justify-center px-6">
                         <img
                             src={data.image}
                             alt={data.name}
-                            className="w-full h-full object-cover"
+                            className="w-48 h-48 object-contain rounded-lg"
                         />
                     </div>
                 )}
@@ -103,12 +103,7 @@ export default function SpotifyModal({ isOpen, onClose, data }) {
                                 </span>
                             </Link>
                         </p>
-                        <button
-                            onClick={onClose}
-                            className="w-full py-3 text-white/80 font-semibold text-sm text-center hover:text-white transition-colors mt-1"
-                        >
-                            Cerrar
-                        </button>
+
                     </div>
                 </div>
             </div>
