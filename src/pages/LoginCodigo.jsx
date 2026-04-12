@@ -41,7 +41,35 @@ export default function LoginCodigo() {
     newCode[index] = digit;
     setSmsCode(newCode);
     setError("");
-    if (digit && index < 5) digitRefs.current[index + 1]?.focus();
+    if (digit && index < 5) {
+      digitRefs.current[index + 1]?.focus();
+    }
+    // Auto-submit al completar el último dígito
+    if (digit && index === 5) {
+      const code = newCode.join("");
+      if (code.length === 6) autoVerify(code);
+    }
+  };
+
+  const autoVerify = async (code) => {
+    setError("");
+    setLoading(true);
+    try {
+      const credential = PhoneAuthProvider.credential(verificationId, code);
+      await signInWithCredential(auth, credential);
+      navigate("/");
+    } catch (err) {
+      switch (err.code) {
+        case "auth/invalid-verification-code":
+          setError("Código incorrecto. Verifica e intenta de nuevo."); break;
+        case "auth/code-expired":
+          setError("El código expiró. Vuelve atrás y solicita uno nuevo."); break;
+        default:
+          setError("No se pudo verificar el código. Intenta de nuevo.");
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDigitKeyDown = (index, e) => {
