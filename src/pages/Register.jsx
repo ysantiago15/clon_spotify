@@ -348,14 +348,6 @@ export default function Register() {
                 </div>
 
                 <button
-                  onClick={handleGoogle}
-                  className="w-full border border-[#7C7C7C] text-white font-bold rounded-full flex items-center justify-center gap-3 hover:border-white transition-all duration-200 mb-2 pr-8 py-3 pl-7 hover:scale-105"
-                >
-                  <FcGoogle size={24} />
-                  <span className="w-full text-center text-base">Registrarte con Google</span>
-                </button>
-
-                <button
                   onClick={() => { setError(""); setStep(3); }}
                   className="w-full border border-[#7C7C7C] text-white font-bold pr-8 py-2 pl-7 rounded-full flex items-center justify-center gap-3 hover:border-white transition-all duration-200 mb-2 hover:scale-105"
                 >
@@ -363,6 +355,14 @@ export default function Register() {
                   <span className="w-full text-center">Registrarme con un número de teléfono</span>
                 </button>
 
+                <button
+                  onClick={handleGoogle}
+                  className="w-full border border-[#7C7C7C] text-white font-bold rounded-full flex items-center justify-center gap-3 hover:border-white transition-all duration-200 mb-2 pr-8 py-3 pl-7 hover:scale-105"
+                >
+                  <FcGoogle size={24} />
+                  <span className="w-full text-center text-base">Registrarte con Google</span>
+                </button>
+                
                 <button className="w-full border border-[#7C7C7C] text-white font-bold rounded-full flex items-center justify-center gap-3 hover:border-white transition-all duration-200 pr-8 py-3 pl-7 hover:scale-105">
                   <FaApple size={24} />
                   <span className="w-full text-center text-base">Regístrate con Apple</span>
