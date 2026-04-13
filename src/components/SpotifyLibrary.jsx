@@ -5,7 +5,12 @@ import { BsCircleFill } from "react-icons/bs";
 import { FiFolder, FiGlobe, FiPlus } from "react-icons/fi";
 import { IoMusicalNotesOutline } from "react-icons/io5";
 import { FaPlay, FaHeart } from "react-icons/fa";
+import { MdOutlineLibraryMusic } from "react-icons/md";
 import { useLikedSongs } from "../hooks/useLikedSongs";
+import { useUserPlaylists } from "../hooks/useUserPlaylists";
+import CreatePlaylistModal from "./CreatePlaylistModal";
+import PlaylistContextMenu from "./PlaylistContextMenu";   // ← NUEVO
+import { useAuth } from "../context/AuthContext";
 
 async function fetchWithAuth(url, retries = 3) {
     const token = localStorage.getItem("spotify_token");
@@ -26,7 +31,7 @@ async function fetchWithAuth(url, retries = 3) {
     return res.json();
 }
 
-const FILTERS = ["Playlists", "Artistas", "Álbumes", "Me gusta"];
+const FILTERS = ["Playlists", "Por Spotify", "Por ti", "Me gusta"];
 
 export default function SpotifyLibrary({ deviceId, isReady, onTrackSelect, onViewChange, activeView }) {
     const token = localStorage.getItem("spotify_token");
@@ -39,19 +44,37 @@ function LibraryContent({ deviceId, isReady, onTrackSelect, onViewChange, active
     const [hoveredId, setHoveredId]       = useState(null);
     const [playingId, setPlayingId]       = useState(null);
     const [menuCrear, setMenuCrear]       = useState(false);
+    const [menuPos,   setMenuPos]         = useState({ top: 0, left: 0 });
     const [tooltip, setTooltip]           = useState("");
+    const btnCrearRef = useRef(null);
     const [needsReauth, setNeedsReauth]   = useState(false);
     const [loading, setLoading]           = useState(true);
+
+    // ── Modal crear / editar playlist ───────────────────────────────────────────
+    const [createModalOpen,   setCreateModalOpen]   = useState(false);
+    const [editModalOpen,     setEditModalOpen]     = useState(false);
+    const [editingPlaylist,   setEditingPlaylist]   = useState(null);
+
+    // ── Menú contextual (click derecho) ─────────────────────────────────────────
+    const [ctxMenu, setCtxMenu] = useState({
+        isOpen:   false,
+        position: { x: 0, y: 0 },
+        playlist: null,
+    });
 
     const [playlists, setPlaylists]             = useState([]);
     const [savedAlbums, setSavedAlbums]         = useState([]);
     const [followedArtists, setFollowedArtists] = useState([]);
 
-    // Me gusta desde Firestore (tiempo real)
     const { likedSongs } = useLikedSongs();
+    const { playlists: userPlaylists, createPlaylist, updatePlaylist, deletePlaylist } = useUserPlaylists();
 
-    const menuRef = useRef(null);
-    const fetched = useRef(false);
+    const { user } = useAuth();
+    const userName = user?.displayName?.split(" ")?.[0] || "Tú";
+
+    const menuRef    = useRef(null);
+    const libraryRef = useRef(null); // ref al contenedor raíz de la biblioteca
+    const fetched    = useRef(false);
 
     useEffect(() => {
         if (fetched.current) return;
@@ -94,9 +117,50 @@ function LibraryContent({ deviceId, isReady, onTrackSelect, onViewChange, active
         return () => document.removeEventListener("mousedown", handler);
     }, []);
 
-    // ── Items de la lista ─────────────────────────────────────────────────────
+    // ── Crear playlist directo sin modal ────────────────────────────────────────
+    const handleCreatePlaylist = async () => {
+        const autoName = `Mi playlist n.° ${userPlaylists.length + 1}`;
+        const newId = await createPlaylist({ name: autoName, description: "", coverColor: "#535353" });
+        if (newId) {
+            onViewChange?.("playlist", newId);
+        }
+    };
 
-    // Item especial "Canciones que te gustan" (muestra contador desde Firestore)
+    // ── Editar playlist desde el modal ──────────────────────────────────────────
+    const handleEditConfirm = async ({ name, description, coverColor, coverImage }) => {
+        if (!editingPlaylist) return;
+        await updatePlaylist(editingPlaylist.firestoreId, { name, description, coverColor, coverImage });
+    };
+
+    // ── Eliminar playlist ───────────────────────────────────────────────────────
+    const handleDeletePlaylist = async (playlist) => {
+        if (!playlist?.firestoreId) return;
+        await deletePlaylist(playlist.firestoreId);
+    };
+
+    // ── Abrir menú contextual ───────────────────────────────────────────────────
+    const handleContextMenu = (e, item) => {
+        // Solo para playlists propias del usuario
+        if (item.type !== "userPlaylist") return;
+        e.preventDefault();
+        e.stopPropagation();
+
+        // Limitar el menú dentro del contenedor de la biblioteca
+        const MENU_W = 210;
+        const MENU_H = 160;
+        const lib = libraryRef.current?.getBoundingClientRect() ?? {
+            left: 0, right: window.innerWidth,
+            top: 0,  bottom: window.innerHeight,
+        };
+        const x = Math.max(lib.left + 4, Math.min(e.clientX, lib.right  - MENU_W - 4));
+        const y = Math.max(lib.top  + 4, Math.min(e.clientY, lib.bottom - MENU_H - 4));
+
+        setCtxMenu({ isOpen: true, position: { x, y }, playlist: item });
+    };
+
+    const closeCtxMenu = () => setCtxMenu(prev => ({ ...prev, isOpen: false }));
+
+    // ── Items de la lista ────────────────────────────────────────────────────────
     const likedItem = {
         id: "__liked__",
         type: "liked",
@@ -104,6 +168,18 @@ function LibraryContent({ deviceId, isReady, onTrackSelect, onViewChange, active
         subtitle: `Playlist • ${likedSongs.length} canciones`,
         isLiked: true,
     };
+
+    const userPlaylistItems = userPlaylists.map(p => ({
+        id:          `__user__${p.id}`,
+        firestoreId: p.id,
+        type:        "userPlaylist",
+        name:        p.name,
+        subtitle:    `Playlist • ${(p.songs || []).length} canciones`,
+        coverColor:  p.coverColor || "#535353",
+        coverImage:  p.coverImage || null,
+        description: p.description || "",
+        img:         p.coverImage || p.songs?.[0]?.image || null,
+    }));
 
     const playlistItems = playlists.map(p => ({
         id: p.id, type: "playlist",
@@ -129,7 +205,6 @@ function LibraryContent({ deviceId, isReady, onTrackSelect, onViewChange, active
         uri: a.uri,
     }));
 
-    // Items de "Me gusta" desde Firestore (para el filtro)
     const likedTrackItems = likedSongs.map(s => ({
         id:       s.uri,
         type:     "likedTrack",
@@ -139,15 +214,15 @@ function LibraryContent({ deviceId, isReady, onTrackSelect, onViewChange, active
         uri:      s.uri,
     }));
 
-    const allItems = [likedItem, ...playlistItems, ...albumItems, ...artistItems];
+    const allItems = [likedItem, ...userPlaylistItems];
 
     const filtered = activeFilter
         ? activeFilter === "Me gusta"
             ? likedTrackItems
             : allItems.filter(item => {
-                  if (activeFilter === "Playlists") return item.type === "playlist" || item.type === "liked";
-                  if (activeFilter === "Álbumes")   return item.type === "album";
-                  if (activeFilter === "Artistas")  return item.type === "artist";
+                  if (activeFilter === "Playlists")   return item.type === "playlist" || item.type === "liked" || item.type === "userPlaylist";
+                  if (activeFilter === "Por ti")      return item.type === "userPlaylist" || item.type === "liked";
+                  if (activeFilter === "Por Spotify") return item.type === "playlist";
                   return true;
               })
         : allItems;
@@ -155,6 +230,10 @@ function LibraryContent({ deviceId, isReady, onTrackSelect, onViewChange, active
     const handlePlay = (item) => {
         if (item.type === "liked") {
             onViewChange?.("liked");
+            return;
+        }
+        if (item.type === "userPlaylist") {
+            onViewChange?.("playlist", item.firestoreId);
             return;
         }
         if (!item.uri) return;
@@ -168,32 +247,57 @@ function LibraryContent({ deviceId, isReady, onTrackSelect, onViewChange, active
         });
     };
 
-    // En móvil solo mostramos "Canciones que te gustan"
     const displayItems = window.innerWidth < 768 ? [likedItem] : filtered;
 
     return (
-        <div className="bg-[#121212] w-full md:w-98.5 h-full md:h-136 rounded-lg flex flex-col overflow-hidden">
-            {/* Header */}
+        <div ref={libraryRef} className="bg-[#121212] w-full md:w-98.5 h-full md:h-136 rounded-lg flex flex-col overflow-hidden">
+            {/* ── Header ── */}
             <header className="flex items-center justify-between px-4 pt-4 pb-1 h-18 flex-shrink-0">
-                <p className="text-base font-bold text-white">Tu biblioteca</p>
+                <button className="flex items-center gap-3 text-[#b3b3b3] hover:text-white transition-colors">
+                    <MdOutlineLibraryMusic size={24} />
+                    <p className="text-base font-bold text-white">Tu biblioteca</p>
+                </button>
                 <div ref={menuRef} className="relative">
                     <button
+                        ref={btnCrearRef}
                         onMouseEnter={() => setTooltip("Crear")}
                         onMouseLeave={() => setTooltip("")}
-                        onClick={() => setMenuCrear(!menuCrear)}
+                        onClick={() => {
+                            if (!menuCrear) {
+                                const rect = btnCrearRef.current.getBoundingClientRect();
+                                setMenuPos({ top: rect.bottom + 8, left: rect.left });
+                            }
+                            setMenuCrear(!menuCrear);
+                        }}
                         className="flex group items-center gap-2 text-white text-sm font-bold bg-[#1F1F1F] py-2 px-4 hover:bg-[#2b2b2b] rounded-3xl transition-colors duration-300"
                     >
                         <FiPlus className={`text-2xl text-gray-300 group-hover:text-white transition-all duration-150 ${menuCrear ? "rotate-45" : "rotate-0"}`} />
                         Crear
                     </button>
-                    {tooltip === "Crear" && (
-                        <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-[#3b3b3b] text-white font-bold text-sm px-2 py-1 rounded whitespace-nowrap">
-                            Crea una playlist, carpeta o jam.
-                        </span>
-                    )}
+                    {tooltip === "Crear" && (() => {
+                        const rect = btnCrearRef.current?.getBoundingClientRect();
+                        if (!rect) return null;
+                        const tipTop  = rect.top - 36;
+                        const tipLeft = rect.left + rect.width / 2;
+                        return (
+                            <span
+                                className="fixed bg-[#3b3b3b] text-white font-bold text-sm px-2 py-1 rounded whitespace-nowrap z-[9999] -translate-x-1/2 pointer-events-none"
+                                style={{ top: tipTop, left: tipLeft }}
+                            >
+                                Crea una playlist, carpeta o jam.
+                            </span>
+                        );
+                    })()}
+
                     {menuCrear && (
-                        <div className="absolute top-12 left-0 bg-[#282828] p-0.5 rounded-lg w-72 z-50">
-                            <div className="group p-2 hover:bg-[#3D3D3D] hover:rounded-lg flex items-center gap-3 transition-all duration-200 cursor-default">
+                        <div
+                            className="fixed bg-[#282828] p-0.5 rounded-lg w-117 z-[9999] shadow-2xl"
+                            style={{ top: menuPos.top, left: menuPos.left }}
+                        >
+                            <div
+                                className="group p-2 hover:bg-[#3D3D3D] hover:rounded-lg flex items-center gap-3 transition-all duration-200 cursor-pointer"
+                                onClick={() => { setMenuCrear(false); handleCreatePlaylist(); }}
+                            >
                                 <div className="relative h-12 w-12 bg-[#505050] rounded-full flex items-center justify-center text-white">
                                     <IoMusicalNotesOutline size={26} className="group-hover:text-[#1FD460] transition-all duration-200" />
                                     <AiOutlinePlus className="absolute bg-[#505050] rounded-full top-2.75 left-3 text-[13px] font-black group-hover:text-[#1FD460]" />
@@ -242,8 +346,16 @@ function LibraryContent({ deviceId, isReady, onTrackSelect, onViewChange, active
                 </div>
             )}
 
-            {/* Filtros — solo desktop */}
-            <div className="hidden md:flex gap-2 px-4 pt-2 pb-3 flex-wrap flex-shrink-0">
+            {/* ── Filtros ── */}
+            <div className="hidden md:flex gap-2 px-4 pt-2 pb-3 flex-wrap flex-shrink-0 items-center">
+                {activeFilter && (
+                    <button
+                        onClick={() => setActiveFilter(null)}
+                        className="w-7 h-7 rounded-full bg-[#2a2a2a] text-white flex items-center justify-center hover:bg-[#3a3a3a] transition-colors text-sm font-bold flex-shrink-0"
+                    >
+                        ✕
+                    </button>
+                )}
                 {FILTERS.map(f => (
                     <button
                         key={f}
@@ -252,7 +364,6 @@ function LibraryContent({ deviceId, isReady, onTrackSelect, onViewChange, active
                             activeFilter === f ? "bg-white text-black" : "bg-[#2a2a2a] text-white hover:bg-[#3a3a3a]"
                         }`}
                     >
-                        {f === "Me gusta" && <FaHeart size={10} className={activeFilter === f ? "text-black" : "text-[#1DB954]"} />}
                         {f}
                     </button>
                 ))}
@@ -265,7 +376,7 @@ function LibraryContent({ deviceId, isReady, onTrackSelect, onViewChange, active
                 </button>
             </div>
 
-            {/* Lista */}
+            {/* ── Lista ── */}
             <div
                 className="px-2 overflow-y-auto flex-1 spotify-scroll"
                 onMouseEnter={e => e.currentTarget.classList.add("scrollbar-visible")}
@@ -303,11 +414,27 @@ function LibraryContent({ deviceId, isReady, onTrackSelect, onViewChange, active
                                 onMouseEnter={() => setHoveredId(item.id)}
                                 onMouseLeave={() => setHoveredId(null)}
                                 onClick={() => handlePlay(item)}
+                                /* ── Click derecho: solo en playlists propias ── */
+                                onContextMenu={(e) => handleContextMenu(e, item)}
                             >
                                 {/* Thumbnail */}
                                 {item.isLiked ? (
                                     <div className="w-12 h-12 rounded flex-shrink-0 flex items-center justify-center bg-gradient-to-br from-[#450af5] to-[#c4efd9] shadow-lg">
                                         <FaHeart className="text-white" size={20} />
+                                    </div>
+                                ) : item.type === "userPlaylist" ? (
+                                    <div className="relative w-12 h-12 rounded-sm flex-shrink-0 flex items-center justify-center bg-[#282828] shadow overflow-hidden">
+                                        {item.img
+                                            ? <img src={item.img} alt={item.name} className="w-full h-full object-cover" />
+                                            : <IoMusicalNotesOutline className="text-[#b3b3b3] w-6 h-6" />
+                                        }
+                                        {isHovered && (
+                                            <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                                                <div className="w-7 h-7 rounded-full bg-[#1DB954] flex items-center justify-center shadow-lg hover:scale-105 transition-transform">
+                                                    <FaPlay size={10} className="text-black ml-0.5" />
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 ) : (
                                     <div className={`relative w-12 h-12 flex-shrink-0 shadow-lg overflow-hidden ${item.type === "artist" ? "rounded-full" : "rounded"}`}>
@@ -355,6 +482,48 @@ function LibraryContent({ deviceId, isReady, onTrackSelect, onViewChange, active
                     </div>
                 )}
             </div>
+
+            {/* ── Modal CREAR playlist ── */}
+            <CreatePlaylistModal
+                isOpen={createModalOpen}
+                onClose={() => setCreateModalOpen(false)}
+                onConfirm={async ({ name, description, coverColor, coverImage }) => {
+                    const newId = await createPlaylist({ name, description, coverColor, coverImage });
+                    if (newId) onViewChange?.("playlist", newId);
+                }}
+                mode="create"
+                userId={user?.uid}
+            />
+
+            {/* ── Modal EDITAR playlist ── */}
+            <CreatePlaylistModal
+                isOpen={editModalOpen}
+                onClose={() => { setEditModalOpen(false); setEditingPlaylist(null); }}
+                onConfirm={handleEditConfirm}
+                initialData={editingPlaylist ? {
+                    name:        editingPlaylist.name,
+                    description: editingPlaylist.description,
+                    coverColor:  editingPlaylist.coverColor,
+                    coverImage:  editingPlaylist.coverImage,
+                } : null}
+                mode="edit"
+                playlistId={editingPlaylist?.firestoreId}
+                userId={user?.uid}
+            />
+
+            {/* ── Menú contextual (click derecho sobre playlist propia) ── */}
+            <PlaylistContextMenu
+                isOpen={ctxMenu.isOpen}
+                position={ctxMenu.position}
+                playlist={ctxMenu.playlist}
+                onClose={closeCtxMenu}
+                onEdit={(playlist) => {
+                    setEditingPlaylist(playlist);
+                    setEditModalOpen(true);
+                }}
+                onDelete={handleDeletePlaylist}
+                onCreate={handleCreatePlaylist}
+            />
         </div>
     );
 }

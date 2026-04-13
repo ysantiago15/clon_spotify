@@ -53,7 +53,8 @@ export function useLikedSongs() {
                 name:     track.name,
                 subtitle: track.subtitle || track.artists?.map(a => a.name).join(", ") || "",
                 image:    track.image    || track.album?.images?.[0]?.url || "",
-                album:    track.album    || track.albumName || "",
+                album:    (typeof track.album === "object" ? track.album?.name : track.album) || track.albumName || "",
+                duration_ms: track.duration_ms || null,
                 likedAt:  serverTimestamp(),
             });
         }

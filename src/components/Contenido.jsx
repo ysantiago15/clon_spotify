@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import SpotifyModal from "./SpotifyModal";
 import ArtistSearch from "./ArtistSearch";
 import LikedSongs from "./LikedSongs";
+import PlaylistView from "./PlaylistView"; // ← NUEVO
+import CreatePlaylistModal from "./CreatePlaylistModal"; // ← NUEVO
 import { getAlbumTracks } from "../config/spotify";
 import { playAlbum } from "../config/spotifyPlayback";
 
@@ -95,6 +97,7 @@ async function fetchPopularAlbums() {
 export default function Contenido({
   searchQuery,
   activeView = "home",
+  activePlaylistId,              // ← NUEVO
   isLoggedIn = false,
   onTrackSelect,
   playTrack,
@@ -103,6 +106,9 @@ export default function Contenido({
   deviceId,
   currentTrack,
   isPlaying,
+  createPlaylistModal,       // ← NUEVO: { isOpen, initialData, mode }
+  onCreatePlaylistClose,     // ← NUEVO: () => void
+  onCreatePlaylistConfirm,   // ← NUEVO: ({ name, description, coverColor }) => void
 }) {
   const [topTracks, setTopTracks] = useState([]);
   const [artists,   setArtists]   = useState([]);
@@ -195,6 +201,24 @@ export default function Contenido({
           currentTrack={currentTrack}
           isPlaying={isPlaying}
           togglePlay={togglePlay}
+        />
+      </div>
+    );
+  }
+
+  // ── Vista "Playlist propia" ──────────────────────────────────────────────────
+  if (activeView === "playlist" && activePlaylistId) {
+    return (
+      <div className="bg-[#121212] w-full h-136 rounded-lg overflow-hidden">
+        <PlaylistView
+          playlistId={activePlaylistId}
+          onTrackSelect={(track) => { onTrackSelect?.(track); }}
+          playTrack={playTrack}
+          currentTrack={currentTrack}
+          isPlaying={isPlaying}
+          togglePlay={togglePlay}
+          onBack={() => {}}
+          onDeleted={() => {}}
         />
       </div>
     );
@@ -465,6 +489,17 @@ export default function Contenido({
       </div>
 
       <SpotifyModal isOpen={isModalOpen} onClose={handleCloseModal} data={modalData} />
+
+      {/* ── CreatePlaylistModal ── renderizado igual que LikedSongs ── */}
+      {createPlaylistModal && (
+        <CreatePlaylistModal
+          isOpen={createPlaylistModal.isOpen}
+          onClose={onCreatePlaylistClose}
+          onConfirm={onCreatePlaylistConfirm}
+          initialData={createPlaylistModal.initialData ?? null}
+          mode={createPlaylistModal.mode ?? "create"}
+        />
+      )}
     </div>
   );
 }

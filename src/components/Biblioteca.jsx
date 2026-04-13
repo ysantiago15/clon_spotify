@@ -44,7 +44,7 @@ export default function Biblioteca() {
                     )}
 
                     {menuCrear && (<div className="absolute top-12 left-0 bg-[#282828] p-0.5 rounded-lg w-117 z-99">
-                        <div className="group p-2 hover:bg-[#3D3D3D] hover:rounded-lg flex items-center gap-3 transition-all duration-200 cursor-default ">
+                        <div className="group p-2 hover:bg-[#3D3D3D] hover:rounded-lg flex items-center gap-3 transition-all duration-200 cursor-default " onClick={() => { setMenuCrear(false); setModalCrearPlaylist(true); }}>
                             <div className="relative text-2xl h-12 w-12 bg-[#505050] rounded-full flex items-center justify-center transition-colors duration-150 text-white">
                                 <IoMusicalNotesOutline size={26} className="group-hover:text-[#1FD460] transition-all duration-200 group-hover:rotate-12" />
                                 <AiOutlinePlus className="absolute bg-[#505050] rounded-full top-2.75 left-3 text-[13px] font-black group-hover:text-[#1FD460] transition-all duration-200 group-hover:rotate-12" />

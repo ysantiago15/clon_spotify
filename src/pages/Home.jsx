@@ -34,6 +34,7 @@ export default function Home() {
 
     const [searchQuery,  setSearchQuery]  = useState("");
     const [activeView,   setActiveView]   = useState("home");
+    const [activePlaylistId, setActivePlaylistId] = useState(null);
     const [currentTrack, setCurrentTrack] = useState(null);
     const [mobileView,   setMobileView]   = useState("home"); // "home" | "search" | "library" | "liked"
 
@@ -60,13 +61,14 @@ export default function Home() {
         if (q) { setActiveView("home"); setMobileView("home"); }
     };
 
-    const handleViewChange = (view) => {
+    const handleViewChange = (view, playlistId = null) => {
         // En móvil, "liked" abre la vista de pantalla completa
         if (view === "liked" && window.innerWidth < 768) {
             setMobileView("liked");
             return;
         }
         setActiveView(view);
+        setActivePlaylistId(playlistId);
         setSearchQuery("");
     };
 
@@ -83,6 +85,7 @@ export default function Home() {
                               onTrackSelect={setCurrentTrack}
                               onViewChange={handleViewChange}
                               activeView={activeView}
+                              activePlaylistId={activePlaylistId}
                           />
                       </div>
                     : <div className="hidden md:block"><Biblioteca /></div>
@@ -95,8 +98,9 @@ export default function Home() {
                             deviceId={deviceId}
                             isReady={isReady}
                             onTrackSelect={(t) => { setCurrentTrack(t); setMobileView("home"); }}
-                            onViewChange={(v) => { handleViewChange(v); }}
+                            onViewChange={(v, id) => { handleViewChange(v, id); }}
                             activeView={activeView}
+                            activePlaylistId={activePlaylistId}
                         />
                     </div>
                 )}
@@ -127,6 +131,7 @@ export default function Home() {
                 <Contenido
                     searchQuery={searchQuery}
                     activeView={activeView}
+                    activePlaylistId={activePlaylistId}
                     isLoggedIn={!!token}
                     onTrackSelect={setCurrentTrack}
                     playTrack={playTrack}

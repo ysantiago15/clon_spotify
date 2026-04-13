@@ -10,15 +10,15 @@ function formatDateAdded(likedAt) {
     if (!likedAt) return "";
     const seconds = likedAt?.seconds ?? likedAt?._seconds;
     if (!seconds) return "";
-    const date     = new Date(seconds * 1000);
-    const now      = new Date();
+    const date = new Date(seconds * 1000);
+    const now = new Date();
     const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
-    if (diffDays === 0)  return "Hoy";
-    if (diffDays === 1)  return "Ayer";
-    if (diffDays < 7)   return `Hace ${diffDays} días`;
-    if (diffDays < 14)  return "Hace 1 semana";
-    if (diffDays < 30)  return `Hace ${Math.floor(diffDays / 7)} semanas`;
-    if (diffDays < 60)  return "Hace 1 mes";
+    if (diffDays === 0) return "Hoy";
+    if (diffDays === 1) return "Ayer";
+    if (diffDays < 7) return `Hace ${diffDays} días`;
+    if (diffDays < 14) return "Hace 1 semana";
+    if (diffDays < 30) return `Hace ${Math.floor(diffDays / 7)} semanas`;
+    if (diffDays < 60) return "Hace 1 mes";
     if (diffDays < 365) return `Hace ${Math.floor(diffDays / 30)} meses`;
     return `Hace ${Math.floor(diffDays / 365)} año${Math.floor(diffDays / 365) > 1 ? "s" : ""}`;
 }
@@ -41,10 +41,16 @@ export default function LikedSongs({ onTrackSelect, playTrack, currentTrack, isP
         }
     };
 
+    const isPlayingFromList = likedSongs.some(s => s.uri === currentTrack?.uri);
+
     const handlePlayAll = () => {
         if (likedSongs.length === 0) return;
-        onTrackSelect?.(likedSongs[0]);
-        playTrack?.(likedSongs[0].uri);
+        if (isPlayingFromList) {
+            togglePlay?.();          // pausa si ya suena algo de la lista
+        } else {
+            onTrackSelect?.(likedSongs[0]);
+            playTrack?.(likedSongs[0].uri);
+        }
     };
 
     return (
@@ -103,7 +109,10 @@ export default function LikedSongs({ onTrackSelect, playTrack, currentTrack, isP
                     disabled={likedSongs.length === 0}
                     className="w-14 h-14 bg-[#1DB954] rounded-full flex items-center justify-center shadow-xl hover:scale-105 hover:bg-[#1ed760] transition-all disabled:opacity-40 disabled:hover:scale-100"
                 >
-                    <FaPlay size={22} className="text-black ml-1" />
+                    {isPlayingFromList && isPlaying
+                        ? <FaPause size={22} className="text-black" />
+                        : <FaPlay size={22} className="text-black ml-1" />
+                    }
                 </button>
                 <button className="text-[#B3B3B3] hover:text-white transition-colors hover:scale-105">
                     <FaShuffle size={22} />
@@ -154,9 +163,9 @@ export default function LikedSongs({ onTrackSelect, playTrack, currentTrack, isP
 
                         {/* Filas */}
                         {likedSongs.map((song, idx) => {
-                            const isCurrent    = currentTrack?.uri === song.uri;
+                            const isCurrent = currentTrack?.uri === song.uri;
                             const isRowPlaying = isCurrent && isPlaying;
-                            const isHovered    = hoveredIdx === idx;
+                            const isHovered = hoveredIdx === idx;
 
                             return (
                                 <div key={song.uri || idx}>

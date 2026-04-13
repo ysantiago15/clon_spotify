@@ -3,6 +3,10 @@ import { useEffect, useRef, useState } from "react";
 import { FaPlay, FaMusic, FaCompactDisc } from "react-icons/fa";
 import { getAlbumTracks } from "../config/spotify";
 import { playAlbum } from "../config/spotifyPlayback";
+import TrackContextMenu from "./TrackContextMenu";
+import { BsThreeDots } from "react-icons/bs";
+import { useLikedSongs } from "../hooks/useLikedSongs";
+import { useUserPlaylists } from "../hooks/useUserPlaylists";
 
 // ─── UTILS ────────────────────────────────────────────────────────────────────
 function msToMinSec(ms) {
@@ -24,8 +28,8 @@ function resolveMainResult(artists, tracks, albums, query) {
     const q = (query || "").toLowerCase().trim();
 
     const topArtist = artists?.[0];
-    const topTrack  = tracks?.[0];
-    const topAlbum  = albums?.[0];
+    const topTrack = tracks?.[0];
+    const topAlbum = albums?.[0];
 
     // Puntaje de similitud: qué tan bien coincide el nombre con el query
     function score(name = "") {
@@ -37,22 +41,22 @@ function resolveMainResult(artists, tracks, albums, query) {
     }
 
     const artistScore = topArtist ? score(topArtist.name) : -1;
-    const trackScore  = topTrack  ? score(topTrack.name)  : -1;
-    const albumScore  = topAlbum  ? score(topAlbum.name)  : -1;
+    const trackScore = topTrack ? score(topTrack.name) : -1;
+    const albumScore = topAlbum ? score(topAlbum.name) : -1;
 
     const best = Math.max(artistScore, trackScore, albumScore);
 
     // Si ninguno coincide con el query, priorizamos canción > álbum > artista
     if (best === 0) {
-        if (topTrack)  return { type: "track",  data: topTrack };
-        if (topAlbum)  return { type: "album",  data: topAlbum };
+        if (topTrack) return { type: "track", data: topTrack };
+        if (topAlbum) return { type: "album", data: topAlbum };
         if (topArtist) return { type: "artist", data: topArtist };
         return null;
     }
 
     // Entre los que tienen el mejor puntaje, elegimos por tipo preferido
-    if (trackScore  === best) return { type: "track",  data: topTrack };
-    if (albumScore  === best) return { type: "album",  data: topAlbum };
+    if (trackScore === best) return { type: "track", data: topTrack };
+    if (albumScore === best) return { type: "album", data: topAlbum };
     if (artistScore === best) return { type: "artist", data: topArtist };
     return null;
 }
@@ -60,17 +64,20 @@ function resolveMainResult(artists, tracks, albums, query) {
 // ─── FILA DE CANCIÓN ──────────────────────────────────────────────────────────
 function TrackRow({ track, index, onPlay }) {
     const [hovered, setHovered] = useState(false);
+    const [menuOpen, setMenuOpen] = useState(false);
+    const { isLiked, toggleLike } = useLikedSongs();
+    const { addSongToPlaylist, createPlaylist, playlists } = useUserPlaylists();
 
     return (
         <div
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
             onClick={() => onPlay(track)}
-            className="flex items-center gap-4 px-3 py-2 rounded-md hover:bg-white/10 active:bg-white/20 transition-colors group cursor-pointer"
+            className="relative flex items-center gap-4 px-3 py-2 rounded-md hover:bg-white/10 active:bg-white/20 transition-colors group cursor-pointer"
         >
             <div className="w-6 text-center shrink-0">
                 {hovered ? (
-                    <button onClick={() => onPlay(track)} className="text-white">
+                    <button onClick={(e) => { e.stopPropagation(); onPlay(track); }} className="text-white">
                         <FaPlay size={12} />
                     </button>
                 ) : (
@@ -98,9 +105,52 @@ function TrackRow({ track, index, onPlay }) {
                 </div>
             </div>
 
-            <span className="text-[#b3b3b3] text-sm shrink-0">
-                {msToMinSec(track.duration_ms)}
-            </span>
+            {/* Duración + botón tres puntos */}
+            <div className="flex items-center gap-2 shrink-0">
+                <span className={`text-[#b3b3b3] text-sm transition-opacity ${hovered || menuOpen ? "opacity-100" : "opacity-100"}`}>
+                    {msToMinSec(track.duration_ms)}
+                </span>
+                <div className="relative group/btn">
+                    <button
+                        onClick={(e) => { e.stopPropagation(); setMenuOpen((v) => !v); }}
+                        className={`text-[#b3b3b3] hover:text-white transition-all p-1 rounded-full hover:scale-105 ${hovered || menuOpen ? "opacity-100" : "opacity-0 pointer-events-none"}`}
+                    >
+                        <BsThreeDots size={16} color="currentColor" />
+                    </button>
+                    {/* Tooltip personalizado */}
+                    {!menuOpen && (
+                        <div
+                            className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 rounded text-xs text-white whitespace-nowrap opacity-0 group-hover/btn:opacity-100 transition-opacity duration-150 z-50"
+                            style={{ background: "#282828", boxShadow: "0 2px 8px rgba(0,0,0,0.5)" }}
+                        >
+                            Más opciones
+                        </div>
+                    )}
+                    {menuOpen && (
+                        <TrackContextMenu
+                            track={track}
+                            onClose={() => setMenuOpen(false)}
+                            onSaveLike={toggleLike}
+                            isLiked={isLiked(track?.uri)}
+                            onAddToPlaylist={async (playlistId, track) => {   // ← reemplaza este bloque completo
+                                if (playlistId === "nueva") {
+                                    const baseName = track.name;
+                                    const existing = playlists.filter(p =>
+                                        p.name === baseName || p.name.startsWith(baseName + " #")
+                                    );
+                                    const name = existing.length === 0
+                                        ? baseName
+                                        : `${baseName} #${existing.length + 1}`;
+                                    const newId = await createPlaylist({ name });
+                                    if (newId) await addSongToPlaylist(newId, track);
+                                } else {
+                                    await addSongToPlaylist(playlistId, track);
+                                }
+                            }}
+                        />
+                    )}
+                </div>
+            </div>
         </div>
     );
 }
@@ -140,16 +190,16 @@ function ArtistCard({ artist, isLoggedIn, onOpenModal, onArtistPlay }) {
     };
 
     return (
-        <div 
-            onMouseEnter={() => setHovered(true)} 
-            onMouseLeave={() => setHovered(false)} 
+        <div
+            onMouseEnter={() => setHovered(true)}
+            onMouseLeave={() => setHovered(false)}
             onClick={handlePlay}
             className="flex flex-col gap-4 p-4 rounded-lg hover:bg-[#282828] active:bg-[#383838] transition-all duration-300 cursor-pointer group w-50 shrink-0"
         >
             <div className="relative w-full aspect-square mb-1">
-                <img 
-                    src={artist.images?.[0]?.url} 
-                    alt={artist.name} 
+                <img
+                    src={artist.images?.[0]?.url}
+                    alt={artist.name}
                     className="w-full h-full rounded-full object-cover shadow-[0_8px_24px_rgba(0,0,0,0.5)]"
                 />
                 {/* Botón de Play flotante (estilo Spotify) */}
@@ -228,11 +278,11 @@ function MainResultArtist({ artist, isLoggedIn, onOpenModal, onArtistPlay }) {
         onArtistPlay?.(artist);
     };
     return (
-        <div onClick={handleClick} className="relative rounded-xl bg-[#1a1a1a] hover:bg-[#242424] active:bg-[#303030] transition-colors p-5 cursor-pointer group overflow-hidden h-55 ">
-            <img src={artist.images?.[0]?.url} alt={artist.name} className="w-23 h-23 rounded-full object-cover shadow-2xl mb-3"/>
-                <h3 className="text-white text-[32px] font-extrabold leading-tight">{artist.name}</h3>
-                <p className="text-[#b3b3b3] text-sm capitalize mt-0.5">{artist.type}</p>
-            
+        <div onClick={handleClick} className="w-ful lg:w-[490px] xl:w-full relative rounded-xl bg-[#1a1a1a] hover:bg-[#242424] active:bg-[#303030] transition-colors p-5 cursor-pointer group overflow-hidden h-55 ">
+            <img src={artist.images?.[0]?.url} alt={artist.name} className="w-23 h-23 rounded-full object-cover shadow-2xl mb-3" />
+            <h3 className="text-white text-[32px] font-extrabold leading-tight">{artist.name}</h3>
+            <p className="text-[#b3b3b3] text-sm capitalize mt-0.5">{artist.type}</p>
+
             {artist.followers?.total > 0 && (
                 <p className="text-[#6a6a6a] text-xs mt-1">{formatFollowers(artist.followers.total)}</p>
             )}
@@ -263,12 +313,12 @@ function MainResultAlbum({ album, isLoggedIn, onOpenModal, onAlbumPlay }) {
     return (
         <div className="relative rounded-xl bg-[#1a1a1a] hover:bg-[#242424] transition-colors p-5 cursor-pointer group overflow-hidden h-55">
             {/* Portada */}
-            
-            <img src={album.images?.[0]?.url} alt={album.name} className="w-23 h-23 rounded-xl object-cover shadow-2xl mb-3"/>
+
+            <img src={album.images?.[0]?.url} alt={album.name} className="w-23 h-23 rounded-xl object-cover shadow-2xl mb-3" />
             {/* Info */}
-                <h3 className="text-white text-[32px] font-extrabold leading-tight">{album.name}</h3>
-                <p className="text-[#b3b3b3] text-sm capitalize mt-0.5">{typeLabel}•<span className="text-white">{artistNames}</span></p>
-            
+            <h3 className="text-white text-[32px] font-extrabold leading-tight">{album.name}</h3>
+            <p className="text-[#b3b3b3] text-sm capitalize mt-0.5">{typeLabel}•<span className="text-white">{artistNames}</span></p>
+
             {/* Botón play */}
             <div
                 onClick={handlePlay}
@@ -290,12 +340,12 @@ function MainResultTrack({ track, onPlay }) {
     return (
         <div onClick={() => onPlay(track)} className="relative rounded-xl bg-[#1a1a1a] hover:bg-[#242424] active:bg-[#303030] transition-colors p-5 cursor-pointer group overflow-hidden h-55">
             {/* Portada */}
-            
-            <img src={track.album?.images?.[0]?.url} alt={track.name} className="w-23 h-23 rounded-xl object-cover shadow-2xl mb-3"/>
+
+            <img src={track.album?.images?.[0]?.url} alt={track.name} className="w-23 h-23 rounded-xl object-cover shadow-2xl mb-3" />
             {/* Info */}
-                <h3 className="text-white text-[16px] font-extrabold leading-tight">{track.name}</h3>
-                <p className="text-[#b3b3b3] text-sm capitalize mt-0.5">Canción •<span className="text-white">{artistNames}</span></p>
-            
+            <h3 className="text-white text-[16px] font-extrabold leading-tight">{track.name}</h3>
+            <p className="text-[#b3b3b3] text-sm capitalize mt-0.5">Canción •<span className="text-white">{artistNames}</span></p>
+
             {/* Botón play */}
             <div
                 className="absolute bottom-5 right-5 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-200"
@@ -347,7 +397,7 @@ function Skeleton() {
 // ─── COMPONENTE PRINCIPAL ─────────────────────────────────────────────────────
 
 // ─── TOKEN PÚBLICO ────────────────────────────────────────────────────────────
-const _CLIENT_ID     = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
+const _CLIENT_ID = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
 const _CLIENT_SECRET = import.meta.env.VITE_SPOTIFY_CLIENT_SECRET;
 let _pubToken = null, _pubExpiry = 0;
 async function _getPublicToken() {
@@ -372,7 +422,7 @@ let _inflightKey = null;
 // ─── FETCH BASE ───────────────────────────────────────────────────────────────
 async function fetchSpotify(url, signal) {
     const token = localStorage.getItem("spotify_token") || (await _getPublicToken());
-    const res   = await fetch(url, { headers: { Authorization: `Bearer ${token}` }, signal });
+    const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` }, signal });
     if (res.status === 429) throw Object.assign(new Error("429"), { status: 429 });
     return res;
 }
@@ -385,8 +435,8 @@ async function fetchAlbumsViaSearch(artistName, artistId, signal) {
     if (_searchCache.has(cacheKey)) return _searchCache.get(cacheKey);
 
     const token = localStorage.getItem("spotify_token") || (await _getPublicToken());
-    const url   = `https://api.spotify.com/v1/search?q=${encodeURIComponent(artistName)}&type=album&limit=10`;
-    const res   = await fetch(url, { headers: { Authorization: `Bearer ${token}` }, signal });
+    const url = `https://api.spotify.com/v1/search?q=${encodeURIComponent(artistName)}&type=album&limit=10`;
+    const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` }, signal });
     if (!res.ok) return [];
 
     const data = await res.json();
@@ -414,7 +464,7 @@ export default function ArtistSearch({ query, deviceId, onTrackSelect, onPlay, i
     const [artistAlbums, setArtistAlbums] = useState([]);
     const [activeFilter, setActiveFilter] = useState("Todo");
     const debounceRef = useRef(null);
-    const abortRef    = useRef(null);
+    const abortRef = useRef(null);
 
     const filters = ["Todo", "Canciones", "Artistas", "Álbumes"];
 
@@ -431,11 +481,11 @@ export default function ArtistSearch({ query, deviceId, onTrackSelect, onPlay, i
             const track = data.tracks?.items?.[0];
             if (!track) return;
             onTrackSelect?.({
-                uri:      track.uri,
-                name:     track.name,
+                uri: track.uri,
+                name: track.name,
                 subtitle: track.artists?.[0]?.name,
-                image:    track.album?.images?.[0]?.url,
-                album:    track.album?.name || "",
+                image: track.album?.images?.[0]?.url,
+                album: track.album?.name || "",
             });
             onPlay?.(track.uri);
         } catch (e) {
@@ -450,10 +500,10 @@ export default function ArtistSearch({ query, deviceId, onTrackSelect, onPlay, i
         if (!tracksData.length) return;
         const uris = tracksData.map(t => t.uri);
         onTrackSelect?.({
-            uri:      tracksData[0].uri,
-            name:     tracksData[0].name,
+            uri: tracksData[0].uri,
+            name: tracksData[0].name,
             subtitle: tracksData[0].artists?.[0]?.name,
-            image:    album.images?.[0]?.url,
+            image: album.images?.[0]?.url,
         });
         await playAlbum(deviceId, uris);
     };
@@ -497,9 +547,9 @@ export default function ArtistSearch({ query, deviceId, onTrackSelect, onPlay, i
                         return;
                     }
                     const data = await searchRes.json();
-                    artists    = data.artists?.items || [];
+                    artists = data.artists?.items || [];
                     tracksData = data.tracks?.items?.slice(0, 4) || [];
-                    albums     = data.albums?.items || [];
+                    albums = data.albums?.items || [];
                     _searchCache.set(runKey, { artists, tracksData, albums });
                 }
 
@@ -516,7 +566,7 @@ export default function ArtistSearch({ query, deviceId, onTrackSelect, onPlay, i
                 if (topArtist) {
                     fetchAlbumsViaSearch(topArtist.name, topArtist.id, signal)
                         .then((albs) => { if (!signal.aborted) setArtistAlbums(albs); })
-                        .catch(() => {});
+                        .catch(() => { });
                 } else {
                     setArtistAlbums([]);
                 }
@@ -569,11 +619,10 @@ export default function ArtistSearch({ query, deviceId, onTrackSelect, onPlay, i
                     <button
                         key={f}
                         onClick={() => setActiveFilter(f)}
-                        className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200 border ${
-                            activeFilter === f
-                                ? "bg-white text-black border-white"
-                                : "bg-transparent text-[#b3b3b3] border-[#3a3a3a] hover:border-white hover:text-white"
-                        }`}
+                        className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200 border ${activeFilter === f
+                            ? "bg-white text-black border-white"
+                            : "bg-transparent text-[#b3b3b3] border-[#3a3a3a] hover:border-white hover:text-white"
+                            }`}
                     >
                         {f}
                     </button>
@@ -604,7 +653,7 @@ export default function ArtistSearch({ query, deviceId, onTrackSelect, onPlay, i
                 <div className="px-6 mt-2 pb-8">
 
                     {/* Grid: resultado principal + canciones */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1  xl:grid-cols-2 gap-6">
 
                         {/* ── Resultado principal ── */}
                         {(activeFilter === "Todo" || activeFilter === "Artistas" || activeFilter === "Álbumes" || activeFilter === "Canciones") && mainResult && (
@@ -643,7 +692,7 @@ export default function ArtistSearch({ query, deviceId, onTrackSelect, onPlay, i
                             </h2>
                             <div className="relative group/carousel w-full">
                                 <button onClick={() => document.getElementById('carrusel-album').scrollBy({ left: -800, behavior: 'smooth' })}
-                                className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-[#2a2a2a] rounded-full flex items-center justify-center text-white opacity-0 group-hover/carousel:opacity-100 transition-opacity duration-200 hover:bg-[#3a3a3a] hover:scale-105 -translate-x-2">
+                                    className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-[#2a2a2a] rounded-full flex items-center justify-center text-white opacity-0 group-hover/carousel:opacity-100 transition-opacity duration-200 hover:bg-[#3a3a3a] hover:scale-105 -translate-x-2">
                                     {'<'}
                                 </button>
 
@@ -654,7 +703,7 @@ export default function ArtistSearch({ query, deviceId, onTrackSelect, onPlay, i
                                 </div>
 
                                 <button onClick={() => document.getElementById('carrusel-album').scrollBy({ left: 800, behavior: 'smooth' })}
-                                className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-[#2a2a2a] rounded-full flex items-center justify-center text-white opacity-0 group-hover/carousel:opacity-100 transition-opacity duration-200 hover:bg-[#3a3a3a] hover:scale-105 translate-x-2">
+                                    className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-[#2a2a2a] rounded-full flex items-center justify-center text-white opacity-0 group-hover/carousel:opacity-100 transition-opacity duration-200 hover:bg-[#3a3a3a] hover:scale-105 translate-x-2">
                                     {'>'}
                                 </button>
                             </div>
@@ -667,7 +716,7 @@ export default function ArtistSearch({ query, deviceId, onTrackSelect, onPlay, i
                             <h2 className="text-white font-bold text-xl mb-4">Artistas relacionados</h2>
                             <div className="relative group/carousel2 w-full">
                                 <button onClick={() => document.getElementById('carrusel-artista').scrollBy({ left: -800, behavior: 'smooth' })}
-                                className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-[#2a2a2a] rounded-full flex items-center justify-center text-white opacity-0 group-hover/carousel2:opacity-100 transition-opacity duration-200 hover:bg-[#3a3a3a] hover:scale-105 -translate-x-2">
+                                    className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-[#2a2a2a] rounded-full flex items-center justify-center text-white opacity-0 group-hover/carousel2:opacity-100 transition-opacity duration-200 hover:bg-[#3a3a3a] hover:scale-105 -translate-x-2">
                                     {'<'}
                                 </button>
 
@@ -678,7 +727,7 @@ export default function ArtistSearch({ query, deviceId, onTrackSelect, onPlay, i
                                 </div>
 
                                 <button onClick={() => document.getElementById('carrusel-artista').scrollBy({ left: 800, behavior: 'smooth' })}
-                                className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-[#2a2a2a] rounded-full flex items-center justify-center text-white opacity-0 group-hover/carousel2:opacity-100 transition-opacity duration-200 hover:bg-[#3a3a3a] hover:scale-105 translate-x-2">
+                                    className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-[#2a2a2a] rounded-full flex items-center justify-center text-white opacity-0 group-hover/carousel2:opacity-100 transition-opacity duration-200 hover:bg-[#3a3a3a] hover:scale-105 translate-x-2">
                                     {'>'}
                                 </button>
                             </div>

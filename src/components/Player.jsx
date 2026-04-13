@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useState } from "react";
 import {
     FaPlay, FaPause, FaShuffle, FaBackwardStep,
@@ -10,6 +9,8 @@ import { MdOutlineDevices } from "react-icons/md";
 import { TbArrowsDiagonal } from "react-icons/tb";
 import { useLikedSongs } from "../hooks/useLikedSongs";
 import { getToken } from "../config/spotify";
+import TrackContextMenu from "./TrackContextMenu";
+import { useUserPlaylists } from "../hooks/useUserPlaylists";
 
 function formatTime(ms) {
     if (!ms || isNaN(ms)) return "0:00";
@@ -53,37 +54,48 @@ export default function Player({
     setOnTrackEnd,   // función del hook para registrar callback de fin de canción
 }) {
     const { isLiked, toggleLike, likedSongs } = useLikedSongs();
+    const { playlists, createPlaylist, addSongToPlaylist } = useUserPlaylists();
 
-    const [volume,     setVolumeState] = useState(0.7);
-    const [prevVolume, setPrevVolume]  = useState(0.7);
-    const [shuffle,    setShuffle]     = useState(false);
-    const [repeat,     setRepeat]      = useState("off"); // "off" | "track" | "context"
-    const [livePos,    setLivePos]     = useState(0);
+    const [volume, setVolumeState] = useState(0.7);
+    const [prevVolume, setPrevVolume] = useState(0.7);
+    const [shuffle, setShuffle] = useState(false);
+    const [repeat, setRepeat] = useState("off"); // "off" | "track" | "context"
+    const [livePos, setLivePos] = useState(0);
+    const [contextMenu, setContextMenu] = useState(null); // { x, y } | null
 
-    const historyRef           = useRef([]);
-    const artistTracksRef      = useRef([]);
-    const trackRef             = useRef(null);
-    const volumeBarRef         = useRef(null);
+    const handleContextMenu = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const menuW = 224;
+        const x = Math.min(e.clientX, window.innerWidth - menuW - 8);
+        const y = e.clientY;
+        setContextMenu({ x, y, anchorBottom: true });
+    };
+
+    const historyRef = useRef([]);
+    const artistTracksRef = useRef([]);
+    const trackRef = useRef(null);
+    const volumeBarRef = useRef(null);
     // Flag: el próximo cambio de track viene de "ir atrás" — no guardar en historial
     const comingFromHistoryRef = useRef(false);
 
     // Refs para que el callback de onTrackEnd siempre tenga valores frescos
-    const activeViewRef   = useRef(activeView);
-    const likedSongsRef   = useRef(likedSongs);
-    const trackUriRef     = useRef(track?.uri);
-    const repeatRef       = useRef("off");
-    const shuffleRef      = useRef(false);
+    const activeViewRef = useRef(activeView);
+    const likedSongsRef = useRef(likedSongs);
+    const trackUriRef = useRef(track?.uri);
+    const repeatRef = useRef("off");
+    const shuffleRef = useRef(false);
 
     useEffect(() => { activeViewRef.current = activeView; }, [activeView]);
     useEffect(() => { likedSongsRef.current = likedSongs; }, [likedSongs]);
-    useEffect(() => { trackUriRef.current   = track?.uri; }, [track?.uri]);
-    useEffect(() => { repeatRef.current     = repeat;    }, [repeat]);
-    useEffect(() => { shuffleRef.current    = shuffle;   }, [shuffle]);
+    useEffect(() => { trackUriRef.current = track?.uri; }, [track?.uri]);
+    useEffect(() => { repeatRef.current = repeat; }, [repeat]);
+    useEffect(() => { shuffleRef.current = shuffle; }, [shuffle]);
 
     const isPlaying = state ? !state.paused : false;
-    const duration  = state?.duration || 0;
-    const progress  = duration ? Math.min((livePos / duration) * 100, 100) : 0;
-    const liked     = track ? isLiked(track.uri) : false;
+    const duration = state?.duration || 0;
+    const progress = duration ? Math.min((livePos / duration) * 100, 100) : 0;
+    const liked = track ? isLiked(track.uri) : false;
 
     const VolumeIcon = volume === 0 ? FaVolumeXmark : volume < 0.5 ? FaVolumeLow : FaVolumeHigh;
 
@@ -121,18 +133,18 @@ export default function Player({
     // ── Registrar el callback de "canción terminada" en el hook ───────────────
     // Se registra UNA SOLA VEZ al montar. Los valores frescos se leen via refs.
     // Refs necesarios para el callback:
-    const playTrackRef    = useRef(playTrack);
+    const playTrackRef = useRef(playTrack);
     const onTrackSelectRef = useRef(onTrackSelect);
-    useEffect(() => { playTrackRef.current    = playTrack;    }, [playTrack]);
+    useEffect(() => { playTrackRef.current = playTrack; }, [playTrack]);
     useEffect(() => { onTrackSelectRef.current = onTrackSelect; }, [onTrackSelect]);
 
     useEffect(() => {
         setOnTrackEnd?.(() => {
-            const view     = activeViewRef.current;
-            const playFn   = playTrackRef.current;
+            const view = activeViewRef.current;
+            const playFn = playTrackRef.current;
             const selectFn = onTrackSelectRef.current;
             const repeatMode = repeatRef.current;
-            const shuffleOn  = shuffleRef.current;
+            const shuffleOn = shuffleRef.current;
 
             // ── REPEAT TRACK: misma canción en loop ──────────────────────
             if (repeatMode === "track") {
@@ -142,19 +154,19 @@ export default function Player({
 
             // ── LIKED view ───────────────────────────────────────────────
             if (view === "liked") {
-                const songs      = likedSongsRef.current;
+                const songs = likedSongsRef.current;
                 const currentUri = trackUriRef.current;
-                const idx     = songs.findIndex(s => s.uri === currentUri);
+                const idx = songs.findIndex(s => s.uri === currentUri);
                 const nextIdx = idx + 1 < songs.length
                     ? idx + 1
                     : (repeatMode === "context" ? 0 : -1);
                 if (nextIdx === -1) return;
                 const next = songs[nextIdx];
-                const obj  = { uri: next.uri, name: next.name, subtitle: next.subtitle, image: next.image, album: next.album };
+                const obj = { uri: next.uri, name: next.name, subtitle: next.subtitle, image: next.image, album: next.album };
                 selectFn?.(obj);
                 playFn?.(next.uri);
 
-            // ── HOME view ────────────────────────────────────────────────
+                // ── HOME view ────────────────────────────────────────────────
             } else {
                 const tracks = artistTracksRef.current;
                 if (!tracks.length) return;
@@ -166,23 +178,23 @@ export default function Player({
                     next = pool.length ? pool[Math.floor(Math.random() * pool.length)] : tracks[0];
                 } else {
                     // repeat context: siguiente en orden, vuelve al inicio al terminar
-                    const idx     = tracks.findIndex(t => t.uri === trackUriRef.current);
+                    const idx = tracks.findIndex(t => t.uri === trackUriRef.current);
                     const nextIdx = idx !== -1 && idx + 1 < tracks.length ? idx + 1 : 0;
                     next = tracks[nextIdx];
                 }
 
                 const obj = {
-                    uri:      next.uri,
-                    name:     next.name,
+                    uri: next.uri,
+                    name: next.name,
                     subtitle: next.artists?.[0]?.name,
-                    image:    next.album?.images?.[0]?.url,
-                    album:    next.album?.name || "",
+                    image: next.album?.images?.[0]?.url,
+                    album: next.album?.name || "",
                 };
                 selectFn?.(obj);
                 playFn?.(next.uri);
             }
         });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []); // [] = solo al montar, los valores frescos vienen de los refs
 
     // ── Barra de progreso en tiempo real ──────────────────────────────────────
@@ -199,11 +211,11 @@ export default function Player({
         if (!tracks.length || !playTrack) return;
         const next = tracks[Math.floor(Math.random() * tracks.length)];
         const obj = {
-            uri:      next.uri,
-            name:     next.name,
+            uri: next.uri,
+            name: next.name,
             subtitle: next.artists?.[0]?.name,
-            image:    next.album?.images?.[0]?.url,
-            album:    next.album?.name || "",
+            image: next.album?.images?.[0]?.url,
+            album: next.album?.name || "",
         };
         onTrackSelect?.(obj);
         playTrack(next.uri);
@@ -212,7 +224,7 @@ export default function Player({
     const playNextLikedSong = () => {
         const songs = likedSongs;
         if (!songs.length || !playTrack) return;
-        const idx  = songs.findIndex(s => s.uri === track?.uri);
+        const idx = songs.findIndex(s => s.uri === track?.uri);
         const next = songs[idx + 1];
         if (!next) return;
         const obj = { uri: next.uri, name: next.name, subtitle: next.subtitle, image: next.image, album: next.album };
@@ -222,7 +234,7 @@ export default function Player({
 
     const playPrevLikedSong = () => {
         const songs = likedSongs;
-        const idx  = songs.findIndex(s => s.uri === track?.uri);
+        const idx = songs.findIndex(s => s.uri === track?.uri);
         const prev = songs[idx - 1];
         if (!prev) { seek?.(0); setLivePos(0); return; }
         const obj = { uri: prev.uri, name: prev.name, subtitle: prev.subtitle, image: prev.image, album: prev.album };
@@ -260,7 +272,7 @@ export default function Player({
 
     const handleRepeat = () => {
         setRepeat(prev => {
-            if (prev === "off")   return "context"; // primer click: repite lista
+            if (prev === "off") return "context"; // primer click: repite lista
             if (prev === "context") return "track"; // segundo click: repite canción
             return "off";                            // tercer click: apaga
         });
@@ -268,9 +280,9 @@ export default function Player({
 
     const handleSeekClick = (e) => {
         if (!duration) return;
-        const rect  = e.currentTarget.getBoundingClientRect();
+        const rect = e.currentTarget.getBoundingClientRect();
         const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-        const ms    = ratio * duration;
+        const ms = ratio * duration;
         setLivePos(ms);
         seek?.(ms);
     };
@@ -281,7 +293,7 @@ export default function Player({
     };
 
     const handleVolumeClick = (e) => {
-        const rect  = e.currentTarget.getBoundingClientRect();
+        const rect = e.currentTarget.getBoundingClientRect();
         const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
         applyVolume(ratio);
     };
@@ -332,10 +344,11 @@ export default function Player({
                             src={track.image || track.album?.images?.[0]?.url}
                             alt={track.name}
                             className="w-11 h-11 rounded-lg object-cover flex-shrink-0 shadow-md"
+                            onContextMenu={handleContextMenu}
                         />
 
                         {/* Nombre + artista */}
-                        <div className="flex-1 min-w-0">
+                        <div className="flex-1 min-w-0" onContextMenu={handleContextMenu}>
                             <p className="text-white text-sm font-semibold truncate leading-tight">{track.name}</p>
                             <p className="text-[#B3B3B3] text-xs truncate leading-tight mt-0.5">
                                 {track.subtitle || track.artists?.[0]?.name}
@@ -362,7 +375,7 @@ export default function Player({
                         >
                             {isPlaying
                                 ? <FaPause className="text-white" size={22} />
-                                : <FaPlay  className="text-white ml-0.5" size={22} />
+                                : <FaPlay className="text-white ml-0.5" size={22} />
                             }
                         </button>
                     </div>
@@ -372,16 +385,16 @@ export default function Player({
                         className="relative w-full h-[3px] bg-white/20 cursor-pointer"
                         onClick={(e) => {
                             if (!duration) return;
-                            const rect  = e.currentTarget.getBoundingClientRect();
+                            const rect = e.currentTarget.getBoundingClientRect();
                             const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-                            const ms    = ratio * duration;
+                            const ms = ratio * duration;
                             setLivePos(ms);
                             seek?.(ms);
                         }}
                         onTouchStart={(e) => {
                             e.stopPropagation();
                             const touch = e.touches[0];
-                            const rect  = e.currentTarget.getBoundingClientRect();
+                            const rect = e.currentTarget.getBoundingClientRect();
                             const ratio = Math.max(0, Math.min(1, (touch.clientX - rect.left) / rect.width));
                             setLivePos(ratio * duration);
                             seek?.(ratio * duration);
@@ -389,14 +402,14 @@ export default function Player({
                         onTouchMove={(e) => {
                             e.stopPropagation();
                             const touch = e.touches[0];
-                            const rect  = e.currentTarget.getBoundingClientRect();
+                            const rect = e.currentTarget.getBoundingClientRect();
                             const ratio = Math.max(0, Math.min(1, (touch.clientX - rect.left) / rect.width));
                             setLivePos(ratio * duration);
                         }}
                         onTouchEnd={(e) => {
                             e.stopPropagation();
                             const touch = e.changedTouches[0];
-                            const rect  = e.currentTarget.getBoundingClientRect();
+                            const rect = e.currentTarget.getBoundingClientRect();
                             const ratio = Math.max(0, Math.min(1, (touch.clientX - rect.left) / rect.width));
                             seek?.(ratio * duration);
                         }}
@@ -420,8 +433,9 @@ export default function Player({
                         src={track.image || track.album?.images?.[0]?.url}
                         alt={track.name}
                         className="w-14 h-14 rounded-md object-cover flex-shrink-0 shadow-lg"
+                        onContextMenu={handleContextMenu}
                     />
-                    <div className="min-w-0 flex flex-col gap-0.5">
+                    <div className="min-w-0 flex flex-col gap-0.5" onContextMenu={handleContextMenu}>
                         <p className="text-white text-sm font-semibold truncate">{track.name}</p>
                         <p className="text-[#B3B3B3] text-xs truncate">
                             {track.subtitle || track.artists?.[0]?.name}
@@ -457,7 +471,7 @@ export default function Player({
                             className="w-10 h-10 rounded-full bg-white flex items-center justify-center hover:scale-105 transition-transform shadow-lg">
                             {isPlaying
                                 ? <FaPause size={16} className="text-black" />
-                                : <FaPlay  size={16} className="text-black ml-0.5" />
+                                : <FaPlay size={16} className="text-black ml-0.5" />
                             }
                         </button>
                         <button onClick={handleNext} title="Siguiente"
@@ -533,6 +547,32 @@ export default function Player({
                     </button>
                 </div>
             </div>
+
+            {/* Menú contextual (click derecho en portada o nombre) */}
+            {contextMenu && (
+                <TrackContextMenu
+                    track={track}
+                    fixedPosition={contextMenu}
+                    onClose={() => setContextMenu(null)}
+                    onSaveLike={toggleLike}
+                    isLiked={isLiked(track?.uri)}
+                    onAddToPlaylist={async (playlistId, trackData) => {   // ← agregar esto
+                        if (playlistId === "nueva") {
+                            const baseName = trackData.name;
+                            const existing = likedSongs.filter(p =>
+                                p.name === baseName || p.name.startsWith(baseName + " #")
+                            );
+                            const name = existing.length === 0
+                                ? baseName
+                                : `${baseName} #${existing.length + 1}`;
+                            const newId = await createPlaylist({ name });
+                            if (newId) await addSongToPlaylist(newId, trackData);
+                        } else {
+                            await addSongToPlaylist(playlistId, trackData);
+                        }
+                    }}
+                />
+            )}
         </>
     );
 }
